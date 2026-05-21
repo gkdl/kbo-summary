@@ -23,6 +23,23 @@ class TeamService(
     private val gameRepository: GameRepository,
     private val standingRepository: StandingRepository,
 ) {
+    fun getAllTeams(): List<TeamDetailDto> {
+        val standings = standingsOfSeason().associateBy { it.teamCode }
+        return teamRepository.findAll().map { team ->
+            val standing = standings[team.teamCode]
+            TeamDetailDto(
+                teamCode = team.teamCode,
+                teamName = team.teamName,
+                stadium = team.stadium,
+                teamColor = team.teamColor,
+                rank = standing?.rank,
+                wins = standing?.wins ?: 0,
+                losses = standing?.losses ?: 0,
+                draws = standing?.draws ?: 0,
+            )
+        }
+    }
+
     fun getTeamDetail(teamCode: String): TeamDetailDto {
         val team = teamRepository.findByIdOrNull(teamCode)
             ?: throw TeamNotFoundException(teamCode)
