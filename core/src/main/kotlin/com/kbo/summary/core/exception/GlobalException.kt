@@ -8,6 +8,8 @@ enum class ErrorCode(val httpStatus: Int, val defaultMessage: String) {
     FORBIDDEN(403, "접근 권한이 없습니다."),
     CRAWLING_FAILED(502, "데이터 수집에 실패했습니다."),
     EXTERNAL_API_ERROR(502, "외부 API 호출에 실패했습니다."),
+    PARSE_FAILED(502, "데이터 파싱에 실패했습니다."),
+    SUMMARY_FAILED(500, "경기 요약 생성에 실패했습니다."),
 }
 
 abstract class BusinessException(

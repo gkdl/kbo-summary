@@ -3,7 +3,7 @@ package com.kbo.summary.crawler.parser
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.kbo.summary.core.domain.GameStatus
-import com.kbo.summary.crawler.client.CrawlerException
+import com.kbo.summary.core.exception.CrawlerException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal

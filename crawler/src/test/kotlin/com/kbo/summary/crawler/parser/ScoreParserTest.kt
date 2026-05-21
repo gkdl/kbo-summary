@@ -1,7 +1,7 @@
 package com.kbo.summary.crawler.parser
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.kbo.summary.crawler.client.CrawlerException
+import com.kbo.summary.core.exception.CrawlerException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test

@@ -1,7 +1,6 @@
 package com.kbo.summary.crawler.client
 
-import com.kbo.summary.core.exception.BusinessException
-import com.kbo.summary.core.exception.ErrorCode
+import com.kbo.summary.core.exception.CrawlerException
 import io.netty.channel.ChannelOption
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -18,11 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import reactor.netty.http.client.HttpClient
 import java.time.Duration
-
-class CrawlerException(
-    message: String,
-    cause: Throwable? = null,
-) : BusinessException(ErrorCode.CRAWLING_FAILED, message, cause)
 
 @Configuration
 class KboWebClientConfig {

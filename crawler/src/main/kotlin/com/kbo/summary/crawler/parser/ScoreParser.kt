@@ -2,7 +2,7 @@ package com.kbo.summary.crawler.parser
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.kbo.summary.crawler.client.CrawlerException
+import com.kbo.summary.core.exception.CrawlerException
 import org.springframework.stereotype.Component
 
 data class InningScoreDto(
