@@ -21,6 +21,9 @@ dependencies {
     api("org.jetbrains.kotlin:kotlin-reflect")
     api("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // JPA 엔티티가 core 모듈에 위치하므로 매핑 애노테이션 API가 필요하다
+    api("jakarta.persistence:jakarta.persistence-api")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.mockk:mockk:1.13.13")
 }
