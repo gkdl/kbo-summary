@@ -1,0 +1,6 @@
+{
+  "rows": [
+    { "rank": 1, "playerId": "60001", "playerName": "홍길동", "teamName": "LG", "value": "0.312" },
+    { "rank": 2, "playerId": "60002", "playerName": "김철수", "teamName": "두산", "value": "0.305" }
+  ]
+}

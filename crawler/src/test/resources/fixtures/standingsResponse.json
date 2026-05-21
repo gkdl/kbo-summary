@@ -1,0 +1,13 @@
+{
+  "season": 2024,
+  "standings": [
+    {
+      "rank": 1, "teamName": "LG", "wins": 86, "losses": 56, "draws": 2,
+      "winRate": "0.606", "gamesBehind": "0.0"
+    },
+    {
+      "rank": 2, "teamName": "두산", "wins": 74, "losses": 68, "draws": 2,
+      "winRate": "0.521", "gamesBehind": "12.0"
+    }
+  ]
+}
