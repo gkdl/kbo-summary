@@ -17,13 +17,15 @@ java {
 dependencies {
     implementation(project(":core"))
 
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // WebClient/코루틴은 :api 모듈에서 크롤러 빈이 컴포넌트 스캔되므로 api()로 노출한다
+    api("org.springframework.boot:spring-boot-starter-webflux")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-cache")
 
     implementation("org.jsoup:jsoup")
     implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Flyway는 부트 가능한 :api 모듈이 자동 설정을 인식하도록 api()로 노출한다
     api("org.flywaydb:flyway-core")
