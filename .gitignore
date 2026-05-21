@@ -1,0 +1,45 @@
+# ===== Gradle =====
+.gradle/
+build/
+**/build/
+
+# ===== IntelliJ IDEA =====
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ===== Eclipse / VS Code =====
+.classpath
+.project
+.settings/
+.vscode/
+
+# ===== 환경 변수 =====
+.env
+*.env
+.env.local
+!.env.example
+
+# ===== Oracle 로컬 데이터 =====
+oracle_data/
+
+# ===== 로그 =====
+*.log
+logs/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Node / React Native (mobile) =====
+node_modules/
+.expo/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+npm-debug.*
+yarn-error.*
+*.tsbuildinfo
+.expo-shared/
