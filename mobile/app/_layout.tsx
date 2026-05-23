@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Tabs, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
@@ -19,20 +19,21 @@ export default function RootLayout() {
   const hydrate = useAppStore((state) => state.hydrate);
   const isHydrated = useAppStore((state) => state.isHydrated);
   const myTeam = useAppStore((state) => state.myTeam);
+  const isOnboardingDone = useAppStore((state) => state.isOnboardingDone);
 
-  // 앱 시작 시 AsyncStorage 값을 Zustand 스토어로 로드한다
+  // 앱 시작 시 AsyncStorage 값을 Zustand 스토어로 로드
   useEffect(() => {
     userPrefs.load().then((prefs) => {
       hydrate({ myTeam: prefs.myTeam, isOnboardingDone: prefs.isOnboardingDone });
     });
   }, [hydrate]);
 
-  // 마이팀이 설정돼 있지 않으면 온보딩 화면으로 보낸다
+  // 온보딩이 끝나지 않았고 마이팀도 없으면 온보딩으로
   useEffect(() => {
-    if (isHydrated && !myTeam) {
+    if (isHydrated && !myTeam && !isOnboardingDone) {
       router.replace("/onboarding");
     }
-  }, [isHydrated, myTeam, router]);
+  }, [isHydrated, myTeam, isOnboardingDone, router]);
 
   if (!isHydrated) {
     return null;
@@ -41,13 +42,13 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Tabs screenOptions={{ headerShown: true }}>
-          <Tabs.Screen name="index" options={{ title: "경기" }} />
-          <Tabs.Screen name="teams" options={{ title: "팀" }} />
-          <Tabs.Screen name="players" options={{ title: "선수" }} />
-          <Tabs.Screen name="settings" options={{ title: "설정" }} />
-          <Tabs.Screen name="onboarding" options={{ href: null }} />
-        </Tabs>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="game/[gameId]" options={{ title: "경기 상세" }} />
+          <Stack.Screen name="team/[teamCode]" options={{ title: "팀 상세" }} />
+          <Stack.Screen name="player/[playerId]" options={{ title: "선수 상세" }} />
+        </Stack>
       </ThemeProvider>
     </QueryClientProvider>
   );

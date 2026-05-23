@@ -25,7 +25,7 @@ export function TeamRosterList({ roster }: Props) {
       {roster.players.map((player, index) => (
         <Pressable
           key={player.playerId}
-          onPress={() => router.push(`/players/${player.playerId}`)}
+          onPress={() => router.push(`/player/${player.playerId}`)}
           style={({ pressed }) => [
             styles.row,
             {

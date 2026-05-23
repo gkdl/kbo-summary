@@ -28,7 +28,7 @@ export function PlayerRankingList({ rankings }: Props) {
         return (
           <Pressable
             key={row.playerId}
-            onPress={() => router.push(`/players/${row.playerId}`)}
+            onPress={() => router.push(`/player/${row.playerId}`)}
             style={({ pressed }) => [
               styles.row,
               {

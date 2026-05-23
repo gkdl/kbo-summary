@@ -19,7 +19,7 @@ export function TeamCard({ team, recentForm }: Props) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/teams/${team.teamCode}`)}
+      onPress={() => router.push(`/team/${team.teamCode}`)}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },

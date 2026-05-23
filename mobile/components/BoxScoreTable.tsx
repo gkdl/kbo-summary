@@ -49,7 +49,7 @@ export function BoxScoreTable({ hitters, pitchers }: Props) {
           <Row
             key={h.playerId + idx}
             colors={colors}
-            onPress={() => router.push(`/players/${h.playerId}`)}
+            onPress={() => router.push(`/player/${h.playerId}`)}
             cells={[
               h.playerName + (h.position ? ` (${h.position})` : ""),
               h.atBats,
@@ -74,7 +74,7 @@ export function BoxScoreTable({ hitters, pitchers }: Props) {
           <Row
             key={p.playerId + idx}
             colors={colors}
-            onPress={() => router.push(`/players/${p.playerId}`)}
+            onPress={() => router.push(`/player/${p.playerId}`)}
             cells={[
               p.playerName,
               p.inningsPitched ?? "-",

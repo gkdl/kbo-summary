@@ -5,15 +5,18 @@ import { useTheme } from "@react-navigation/native";
 import { getTeam } from "../constants/teams";
 import { useAppStore } from "../store/useAppStore";
 import type { Standing } from "../types/team";
+import { RecentFormDots } from "./RecentFormDots";
 
 interface Props {
   standings: Standing[];
+  recentForms?: Record<string, string[]>;
 }
 
-export function RankingTable({ standings }: Props) {
+export function RankingTable({ standings, recentForms }: Props) {
   const { colors } = useTheme();
   const router = useRouter();
   const myTeam = useAppStore((state) => state.myTeam);
+  const showRecent = recentForms !== undefined;
 
   if (standings.length === 0) {
     return (
@@ -33,14 +36,18 @@ export function RankingTable({ standings }: Props) {
         <Text style={[styles.headerText, styles.cellNum, { color: colors.text }]}>무</Text>
         <Text style={[styles.headerText, styles.cellRate, { color: colors.text }]}>승률</Text>
         <Text style={[styles.headerText, styles.cellGb, { color: colors.text }]}>GB</Text>
+        {showRecent ? (
+          <Text style={[styles.headerText, styles.cellRecent, { color: colors.text }]}>최근 5</Text>
+        ) : null}
       </View>
       {standings.map((row) => {
         const team = getTeam(row.teamCode);
         const isMyTeam = myTeam !== null && row.teamCode === myTeam;
+        const recent = recentForms?.[row.teamCode];
         return (
           <Pressable
             key={row.teamCode}
-            onPress={() => router.push(`/teams/${row.teamCode}`)}
+            onPress={() => router.push(`/team/${row.teamCode}`)}
             style={({ pressed }) => [
               styles.row,
               {
@@ -87,6 +94,13 @@ export function RankingTable({ standings }: Props) {
             <Text style={[styles.cellGb, styles.cellText, { color: colors.text }]}>
               {row.gamesBehind?.toFixed(1) ?? "-"}
             </Text>
+            {showRecent ? (
+              <View style={styles.cellRecent}>
+                {recent && recent.length > 0 ? (
+                  <RecentFormDots recentForm={recent.slice(0, 5)} size={10} />
+                ) : null}
+              </View>
+            ) : null}
           </Pressable>
         );
       })}
@@ -100,11 +114,12 @@ const styles = StyleSheet.create({
   header: { borderBottomWidth: StyleSheet.hairlineWidth },
   headerText: { fontSize: 12, fontWeight: "600", opacity: 0.7 },
   cellText: { fontSize: 13, fontVariant: ["tabular-nums"] },
-  cellRank: { width: 36, textAlign: "center" },
+  cellRank: { width: 32, textAlign: "center" },
   cellTeam: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },
-  cellNum: { width: 30, textAlign: "center" },
-  cellRate: { width: 50, textAlign: "center" },
-  cellGb: { width: 40, textAlign: "center" },
+  cellNum: { width: 26, textAlign: "center" },
+  cellRate: { width: 46, textAlign: "center" },
+  cellGb: { width: 36, textAlign: "center" },
+  cellRecent: { width: 64, alignItems: "center" },
   dot: { width: 8, height: 8, borderRadius: 4 },
   teamName: { fontSize: 14 },
   empty: { padding: 24, alignItems: "center", borderRadius: 8, borderWidth: 1 },

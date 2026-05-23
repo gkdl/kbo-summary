@@ -24,7 +24,7 @@ export function ScoreCard({ game }: Props) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/games/${game.gameId}`)}
+      onPress={() => router.push(`/game/${game.gameId}`)}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
