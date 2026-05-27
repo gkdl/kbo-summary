@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 import { useTheme } from "../hooks/useTheme";
 
@@ -10,7 +10,9 @@ interface Props {
 
 export function SkeletonLoader({ width = 200, height = 16, borderRadius = 4 }: Props) {
   const { colors } = useTheme();
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  // useState lazy initializer 로 Animated.Value 를 1회만 생성.
+  // useRef 의 .current 를 render 시점에 접근하면 react-hooks/refs 규칙 위반.
+  const [opacity] = useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
     const loop = Animated.loop(

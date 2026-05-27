@@ -10,7 +10,7 @@ interface Props {
 export function TeamStatTable({ stats }: Props) {
   const { colors } = useTheme();
 
-  const rows: Array<[string, string]> = [
+  const rows: [string, string][] = [
     ["순위", `${stats.rank}위`],
     ["승", stats.wins.toString()],
     ["패", stats.losses.toString()],

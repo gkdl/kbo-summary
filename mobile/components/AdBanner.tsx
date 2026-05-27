@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads";
 
 /**
@@ -16,8 +16,6 @@ import { BannerAd, BannerAdSize, TestIds } from "react-native-google-mobile-ads"
 // TODO: AdMob 콘솔 → 광고 단위 추가 → "배너" 형식으로 발급받은 후 교체
 const ANDROID_BANNER_UNIT_ID = "ca-app-pub-6630409826466167/5671269274";
 const IOS_BANNER_UNIT_ID = "ca-app-pub-6630409826466167/실제광고단위ID여기";
-
-import { Platform } from "react-native";
 
 const realUnitId = Platform.OS === "ios" ? IOS_BANNER_UNIT_ID : ANDROID_BANNER_UNIT_ID;
 const unitId = __DEV__ ? TestIds.BANNER : realUnitId;

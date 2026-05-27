@@ -23,7 +23,7 @@ export function PlayerStatTable({ stat }: Props) {
   );
 }
 
-function hittingRows(line: HittingLine): Array<[string, string]> {
+function hittingRows(line: HittingLine): [string, string][] {
   return [
     ["타율", line.avg?.toFixed(3) ?? "-"],
     ["출루+장타(OPS)", line.ops?.toFixed(3) ?? "-"],
@@ -39,7 +39,7 @@ function hittingRows(line: HittingLine): Array<[string, string]> {
   ];
 }
 
-function pitchingRows(line: PitchingLine): Array<[string, string]> {
+function pitchingRows(line: PitchingLine): [string, string][] {
   return [
     ["평균자책(ERA)", line.era?.toFixed(2) ?? "-"],
     ["WHIP", line.whip?.toFixed(2) ?? "-"],
@@ -57,7 +57,7 @@ function pitchingRows(line: PitchingLine): Array<[string, string]> {
 
 interface GridProps {
   colors: { text: string; border: string; card: string };
-  rows: Array<[string, string]>;
+  rows: [string, string][];
 }
 
 function StatGrid({ colors, rows }: GridProps) {

@@ -202,7 +202,7 @@ function fmt(value: string | number | null | undefined): string {
 
 interface RowProps {
   colors: { text: string; border: string };
-  cells: Array<string | number>;
+  cells: (string | number)[];
   header?: boolean;
 }
 
