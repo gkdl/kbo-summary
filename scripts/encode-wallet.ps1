@@ -14,28 +14,38 @@
 
 param(
     [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
     [string]$WalletPath
 )
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Test-Path $WalletPath -PathType Container)) {
+if (-not (Test-Path -Path $WalletPath -PathType Container)) {
     throw "Wallet 폴더가 없음: $WalletPath"
 }
+
+# 상대경로 → 절대경로 (Compress-Archive 가 glob 처리 시 상대경로에서 자주 null 반환)
+$absWallet = (Resolve-Path -Path $WalletPath).Path
 
 # tnsnames.ora 가 진짜 wallet 인지 한 번 검증
 $requiredFiles = @('tnsnames.ora', 'sqlnet.ora', 'cwallet.sso')
 foreach ($f in $requiredFiles) {
-    $fp = Join-Path $WalletPath $f
+    $fp = Join-Path $absWallet $f
     if (-not (Test-Path $fp)) {
         Write-Warning "기대한 파일이 없음: $fp (계속 진행)"
     }
 }
 
+# 디렉토리 안의 파일을 명시적으로 수집 (glob 보다 안전)
+$items = Get-ChildItem -Path $absWallet -File
+if ($items.Count -eq 0) {
+    throw "Wallet 폴더가 비어있음: $absWallet"
+}
+
 # 임시 zip 생성 → base64 인코딩
 $tmpZip = Join-Path $env:TEMP "wallet_$(Get-Date -Format 'yyyyMMddHHmmss').zip"
 try {
-    Compress-Archive -Path "$WalletPath\*" -DestinationPath $tmpZip -Force
+    Compress-Archive -Path $items.FullName -DestinationPath $tmpZip -Force
     $bytes = [System.IO.File]::ReadAllBytes($tmpZip)
     $b64 = [Convert]::ToBase64String($bytes)
 } finally {
