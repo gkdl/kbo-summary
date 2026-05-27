@@ -2,10 +2,14 @@ package com.kbo.summary.crawler.service
 
 import com.kbo.summary.core.domain.Player
 import com.kbo.summary.core.domain.PlayerType
+import com.kbo.summary.core.domain.Standing
 import com.kbo.summary.crawler.client.KboWebClient
+import com.kbo.summary.crawler.parser.TeamHitterParser
+import com.kbo.summary.crawler.parser.TeamPitcherParser
+import com.kbo.summary.crawler.parser.TeamRankParser
 import com.kbo.summary.crawler.parser.TeamRosterParser
-import com.kbo.summary.crawler.parser.TeamStatParser
 import com.kbo.summary.crawler.repository.PlayerRepository
+import com.kbo.summary.crawler.repository.StandingRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -13,23 +17,14 @@ import org.springframework.stereotype.Service
 @Service
 class TeamCrawlerService(
     private val kboWebClient: KboWebClient,
-    private val teamStatParser: TeamStatParser,
     private val teamRosterParser: TeamRosterParser,
+    private val teamHitterParser: TeamHitterParser,
+    private val teamPitcherParser: TeamPitcherParser,
+    private val teamRankParser: TeamRankParser,
     private val playerRepository: PlayerRepository,
+    private val standingRepository: StandingRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    // 팀 기록 전용 엔티티가 STEP 3 스키마에 없어 수집 결과는 로그로만 남긴다
-    suspend fun crawlTeamStats(teamCode: String) {
-        val hitterJson = kboWebClient.post(TEAM_HITTER_PATH, mapOf("teamCode" to teamCode))
-        val hitter = teamStatParser.parseTeamHitterStat(hitterJson)
-        val pitcherJson = kboWebClient.post(TEAM_PITCHER_PATH, mapOf("teamCode" to teamCode))
-        val pitcher = teamStatParser.parseTeamPitcherStat(pitcherJson)
-        log.info(
-            "팀 {} 시즌기록 수집 — 타율 {}, 홈런 {}, ERA {}",
-            teamCode, hitter.avg, hitter.homeRuns, pitcher.era,
-        )
-    }
 
     suspend fun crawlTeamRoster(teamCode: String) {
         val html = kboWebClient.get("$ROSTER_PATH?teamCode=$teamCode")
@@ -56,10 +51,49 @@ class TeamCrawlerService(
         log.info("팀 {} 로스터 {}명 저장", teamCode, roster.players.size)
     }
 
+    // 팀 시즌 기록 — 영속화 엔티티가 없어 로그로만 남긴다
+    suspend fun crawlTeamSeasonStats() {
+        runCatching {
+            val rows = teamHitterParser.parse(kboWebClient.get(TEAM_HITTER_PATH))
+            log.info("팀 타격 통계 {}팀 수집", rows.size)
+        }.onFailure { log.error("팀 타격 통계 수집 실패: {}", it.message) }
+        runCatching {
+            val rows = teamPitcherParser.parse(kboWebClient.get(TEAM_PITCHER_PATH))
+            log.info("팀 투수 통계 {}팀 수집", rows.size)
+        }.onFailure { log.error("팀 투수 통계 수집 실패: {}", it.message) }
+    }
+
+    // 팀 순위 — TeamRankDaily.aspx HTML 파싱 후 시즌별로 upsert (기존 행 제거 후 재삽입)
+    suspend fun crawlStandings(): List<Standing> {
+        val html = kboWebClient.get(STANDINGS_PATH)
+        val rows = teamRankParser.parse(html)
+        rows.map { it.season }.distinct().forEach { season ->
+            standingRepository.findBySeasonOrderByRank(season)
+                .takeIf { it.isNotEmpty() }
+                ?.let { standingRepository.deleteAll(it) }
+        }
+        val saved = standingRepository.saveAll(
+            rows.map { row ->
+                Standing(
+                    season = row.season,
+                    teamCode = row.teamCode,
+                    rank = row.rank,
+                    wins = row.wins,
+                    losses = row.losses,
+                    draws = row.draws,
+                    winRate = row.winRate,
+                    gamesBehind = row.gamesBehind,
+                )
+            },
+        )
+        log.info("팀 순위 {}건 저장", saved.size)
+        return saved
+    }
+
     private companion object {
-        // 실제 KBO 엔드포인트 경로 — 운영 전 검증 필요
-        const val TEAM_HITTER_PATH = "/ws/Record.asmx/GetTeamHitterBasicRecord"
-        const val TEAM_PITCHER_PATH = "/ws/Record.asmx/GetTeamPitcherBasicRecord"
         const val ROSTER_PATH = "/Player/Register.aspx"
+        const val TEAM_HITTER_PATH = "/Record/Team/Hitter/Basic1.aspx"
+        const val TEAM_PITCHER_PATH = "/Record/Team/Pitcher/Basic1.aspx"
+        const val STANDINGS_PATH = "/Record/TeamRank/TeamRankDaily.aspx"
     }
 }

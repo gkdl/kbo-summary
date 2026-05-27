@@ -29,7 +29,9 @@ class PlayerService(
 ) {
     fun getPlayerProfile(playerId: String): PlayerProfileDto {
         var player = playerRepository.findByIdOrNull(playerId)
-        if (player == null) {
+        // 시즌통계 크롤로 만들어진 stub Player 는 name·team 만 있어 birthDate 등이 비어 있다.
+        // 프로필이 비어 있으면 KBO 선수 상세 페이지를 가져와 풍부한 정보로 채운다.
+        if (player == null || player.birthDate == null) {
             crawlSafely { playerCrawlerService.crawlPlayerProfile(playerId) }
             player = playerRepository.findByIdOrNull(playerId)
         }

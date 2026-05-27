@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import { getTeam } from "../constants/teams";
 import type { TeamDetail } from "../types/team";

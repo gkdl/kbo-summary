@@ -1,167 +1,256 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../hooks/useTheme";
 
-// 박스스코어용 로컬 타입. API에서 노출되면 mobile/types 로 옮긴다.
+import { getTeam } from "../constants/teams";
+
+// KBO 박스스코어 응답을 그대로 옮긴 타입.
+// playerId 는 KBO 가 박스스코어에 노출하지 않으므로 이름만 표시한다.
 export interface HitterLine {
-  playerId: string;
   playerName: string;
   position?: string | null;
+  battingOrder?: number | null;
+  teamCode: string;
   atBats: number;
-  runs: number;
   hits: number;
   rbi: number;
-  homeRuns: number;
-  walks: number;
-  strikeOuts: number;
+  runs: number;
+  avg?: string | number | null;
 }
 
 export interface PitcherLine {
-  playerId: string;
   playerName: string;
-  inningsPitched?: string | null;
+  teamCode: string;
+  role?: string | null;
+  decision?: string | null;
+  inningsPitched?: string | number | null;
+  pitchCount: number;
+  atBats: number;
   hits: number;
-  runs: number;
-  earnedRuns: number;
+  homeRuns: number;
   walks: number;
   strikeOuts: number;
-  decision?: string | null;
+  earnedRuns: number;
+  era?: string | number | null;
 }
 
 interface Props {
-  hitters: HitterLine[];
-  pitchers: PitcherLine[];
+  awayTeamCode: string;
+  homeTeamCode: string;
+  awayHitters: HitterLine[];
+  homeHitters: HitterLine[];
+  awayPitchers: PitcherLine[];
+  homePitchers: PitcherLine[];
 }
 
-export function BoxScoreTable({ hitters, pitchers }: Props) {
+export function BoxScoreTable({
+  awayTeamCode,
+  homeTeamCode,
+  awayHitters,
+  homeHitters,
+  awayPitchers,
+  homePitchers,
+}: Props) {
   const { colors } = useTheme();
-  const router = useRouter();
+  const away = getTeam(awayTeamCode);
+  const home = getTeam(homeTeamCode);
+
+  const hitterHeader = ["선수", "AB", "H", "RBI", "R", "AVG"];
+  const pitcherHeader = ["선수", "결과", "IP", "NP", "H", "HR", "BB", "SO", "ER", "ERA"];
 
   return (
     <View style={{ gap: 16 }}>
-      <Section title="타자" colors={colors}>
-        <Row
-          colors={colors}
-          header
-          cells={["선수", "AB", "R", "H", "RBI", "HR", "BB", "SO"]}
-        />
-        {hitters.map((h, idx) => (
-          <Row
-            key={h.playerId + idx}
-            colors={colors}
-            onPress={() => router.push(`/player/${h.playerId}`)}
-            cells={[
-              h.playerName + (h.position ? ` (${h.position})` : ""),
-              h.atBats,
-              h.runs,
-              h.hits,
-              h.rbi,
-              h.homeRuns,
-              h.walks,
-              h.strikeOuts,
-            ]}
-          />
-        ))}
-      </Section>
+      <Text style={[styles.groupTitle, { color: colors.text }]}>타자</Text>
+      <TeamHitterSection
+        label={`${away?.shortName ?? awayTeamCode} (원정)`}
+        accent={away?.color ?? colors.primary}
+        hitters={awayHitters}
+        header={hitterHeader}
+        colors={colors}
+      />
+      <TeamHitterSection
+        label={`${home?.shortName ?? homeTeamCode} (홈)`}
+        accent={home?.color ?? colors.primary}
+        hitters={homeHitters}
+        header={hitterHeader}
+        colors={colors}
+      />
 
-      <Section title="투수" colors={colors}>
-        <Row
-          colors={colors}
-          header
-          cells={["선수", "IP", "H", "R", "ER", "BB", "SO", "결과"]}
-        />
-        {pitchers.map((p, idx) => (
-          <Row
-            key={p.playerId + idx}
-            colors={colors}
-            onPress={() => router.push(`/player/${p.playerId}`)}
-            cells={[
-              p.playerName,
-              p.inningsPitched ?? "-",
-              p.hits,
-              p.runs,
-              p.earnedRuns,
-              p.walks,
-              p.strikeOuts,
-              p.decision ?? "",
-            ]}
-          />
-        ))}
-      </Section>
+      <Text style={[styles.groupTitle, { color: colors.text, marginTop: 4 }]}>투수</Text>
+      <TeamPitcherSection
+        label={`${away?.shortName ?? awayTeamCode} (원정)`}
+        accent={away?.color ?? colors.primary}
+        pitchers={awayPitchers}
+        header={pitcherHeader}
+        colors={colors}
+      />
+      <TeamPitcherSection
+        label={`${home?.shortName ?? homeTeamCode} (홈)`}
+        accent={home?.color ?? colors.primary}
+        pitchers={homePitchers}
+        header={pitcherHeader}
+        colors={colors}
+      />
     </View>
   );
 }
 
-interface SectionProps {
-  title: string;
-  colors: { text: string; border: string; card: string };
-  children: React.ReactNode;
+interface ColorSet {
+  text: string;
+  border: string;
+  card: string;
 }
 
-function Section({ title, colors, children }: SectionProps) {
+function TeamHitterSection({
+  label,
+  accent,
+  hitters,
+  header,
+  colors,
+}: {
+  label: string;
+  accent: string;
+  hitters: HitterLine[];
+  header: string[];
+  colors: ColorSet;
+}) {
   return (
     <View>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+      <SectionLabel label={label} accent={accent} color={colors.text} />
       <View style={[styles.table, { borderColor: colors.border, backgroundColor: colors.card }]}>
-        {children}
+        <Row cells={header} colors={colors} header />
+        {hitters.length === 0 ? (
+          <EmptyRow colors={colors} text="기록 없음" />
+        ) : (
+          hitters.map((h, idx) => (
+            <Row
+              key={`${h.playerName}-${idx}`}
+              colors={colors}
+              cells={[
+                h.playerName + (h.position ? ` (${h.position})` : ""),
+                h.atBats,
+                h.hits,
+                h.rbi,
+                h.runs,
+                fmt(h.avg),
+              ]}
+            />
+          ))
+        )}
       </View>
     </View>
   );
+}
+
+function TeamPitcherSection({
+  label,
+  accent,
+  pitchers,
+  header,
+  colors,
+}: {
+  label: string;
+  accent: string;
+  pitchers: PitcherLine[];
+  header: string[];
+  colors: ColorSet;
+}) {
+  return (
+    <View>
+      <SectionLabel label={label} accent={accent} color={colors.text} />
+      <View style={[styles.table, { borderColor: colors.border, backgroundColor: colors.card }]}>
+        <Row cells={header} colors={colors} header />
+        {pitchers.length === 0 ? (
+          <EmptyRow colors={colors} text="기록 없음" />
+        ) : (
+          pitchers.map((p, idx) => (
+            <Row
+              key={`${p.playerName}-${idx}`}
+              colors={colors}
+              cells={[
+                p.playerName,
+                p.decision ?? p.role ?? "",
+                fmt(p.inningsPitched),
+                p.pitchCount,
+                p.hits,
+                p.homeRuns,
+                p.walks,
+                p.strikeOuts,
+                p.earnedRuns,
+                fmt(p.era),
+              ]}
+            />
+          ))
+        )}
+      </View>
+    </View>
+  );
+}
+
+function SectionLabel({ label, accent, color }: { label: string; accent: string; color: string }) {
+  return (
+    <View style={styles.sectionLabelRow}>
+      <View style={[styles.sectionDot, { backgroundColor: accent }]} />
+      <Text style={[styles.sectionLabel, { color }]}>{label}</Text>
+    </View>
+  );
+}
+
+function fmt(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "-";
+  return String(value);
 }
 
 interface RowProps {
   colors: { text: string; border: string };
   cells: Array<string | number>;
   header?: boolean;
-  onPress?: () => void;
 }
 
-function Row({ colors, cells, header, onPress }: RowProps) {
-  const content = cells.map((value, index) => (
-    <Text
-      key={index}
-      style={[
-        styles.cell,
-        index === 0 ? styles.nameCell : null,
-        {
-          color: colors.text,
-          fontWeight: header || index === 0 ? "600" : "400",
-          opacity: header ? 0.7 : 1,
-        },
-      ]}
-      numberOfLines={1}
-    >
-      {value}
-    </Text>
-  ));
-
-  if (header) {
-    return <View style={[styles.row, { borderColor: colors.border }]}>{content}</View>;
-  }
-
+function Row({ colors, cells, header }: RowProps) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        { borderColor: colors.border, opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      {content}
-    </Pressable>
+    <View style={[styles.row, { borderColor: colors.border }]}>
+      {cells.map((value, index) => (
+        <Text
+          key={index}
+          style={[
+            styles.cell,
+            index === 0 ? styles.nameCell : null,
+            {
+              color: colors.text,
+              fontWeight: header || index === 0 ? "600" : "400",
+              opacity: header ? 0.7 : 1,
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {value}
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+function EmptyRow({ colors, text }: { colors: { text: string; border: string }; text: string }) {
+  return (
+    <View style={[styles.row, { borderColor: colors.border, justifyContent: "center" }]}>
+      <Text style={{ color: colors.text, opacity: 0.5, fontSize: 12, paddingVertical: 6 }}>{text}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionTitle: { fontSize: 14, fontWeight: "600", marginBottom: 6 },
-  table: { borderRadius: 8, borderWidth: 1, overflow: "hidden" },
+  groupTitle: { fontSize: 15, fontWeight: "700" },
+  sectionLabelRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+  sectionDot: { width: 10, height: 10, borderRadius: 5 },
+  sectionLabel: { fontSize: 13, fontWeight: "600" },
+  table: { borderRadius: 8, borderWidth: 1, overflow: "hidden", marginBottom: 6 },
   row: {
     flexDirection: "row",
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
   },
-  cell: { flex: 1, textAlign: "center", fontSize: 12, fontVariant: ["tabular-nums"] },
-  nameCell: { flex: 2.2, textAlign: "left" },
+  cell: { flex: 1, textAlign: "center", fontSize: 11, fontVariant: ["tabular-nums"] },
+  nameCell: { flex: 2, textAlign: "left", fontSize: 12 },
 });

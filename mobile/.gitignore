@@ -1,0 +1,20 @@
+node_modules/
+.expo/
+dist/
+web-build/
+package-lock.json
+
+# Native build outputs — managed workflow 에선 expo prebuild 가 매번 생성
+android/
+ios/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Env
+.env.local
+.env.*.local

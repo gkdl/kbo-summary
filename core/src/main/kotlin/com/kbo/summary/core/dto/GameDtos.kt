@@ -1,5 +1,6 @@
 package com.kbo.summary.core.dto
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -28,11 +29,51 @@ data class TeamLineDto(
     val walks: Int,
 )
 
+data class BoxHitterDto(
+    val playerName: String,
+    val battingOrder: Int?,
+    val position: String?,
+    val teamCode: String,
+    val atBats: Int,
+    val hits: Int,
+    val rbi: Int,
+    val runs: Int,
+    val avg: BigDecimal?,
+)
+
+data class BoxPitcherDto(
+    val playerName: String,
+    val teamCode: String,
+    val role: String?,
+    val decision: String?,
+    val inningsPitched: BigDecimal?,
+    val pitchCount: Int,
+    val battersFaced: Int,
+    val atBats: Int,
+    val hits: Int,
+    val homeRuns: Int,
+    val walks: Int,
+    val strikeOuts: Int,
+    val runs: Int,
+    val earnedRuns: Int,
+    val era: BigDecimal?,
+)
+
+data class HighlightDto(
+    val youtubeVideoId: String,
+    val title: String?,
+)
+
 data class GameDetailDto(
     val game: GameDto,
     val inningScores: List<InningScoreDto>,
     val homeLine: TeamLineDto,
     val awayLine: TeamLineDto,
+    val awayHitters: List<BoxHitterDto> = emptyList(),
+    val homeHitters: List<BoxHitterDto> = emptyList(),
+    val awayPitchers: List<BoxPitcherDto> = emptyList(),
+    val homePitchers: List<BoxPitcherDto> = emptyList(),
+    val highlight: HighlightDto? = null,
 )
 
 data class GameSummaryDto(

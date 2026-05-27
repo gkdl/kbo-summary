@@ -1,7 +1,7 @@
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQueries } from "@tanstack/react-query";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../../hooks/useTheme";
 
 import { apiClient } from "../../api/client";
 import { ErrorState } from "../../components/ErrorState";

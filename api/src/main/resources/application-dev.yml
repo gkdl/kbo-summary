@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:oracle:thin:@//${ORACLE_HOST:localhost}:${ORACLE_PORT:1521}/${ORACLE_SERVICE:XEPDB1}
-    username: ${ORACLE_USER:kbo}
-    password: ${ORACLE_PASSWORD:kbo}
-    driver-class-name: oracle.jdbc.OracleDriver
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@p0mpe7dp2i5vywqf_tp
+    username: SCRIPT
+    password: QAZwsx123!@$
   jpa:
     show-sql: true
     properties:

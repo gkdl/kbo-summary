@@ -8,14 +8,21 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://localhost:8080"
+        "EXPO_PUBLIC_API_BASE_URL": "http://172.30.1.22:8080"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://staging-api.example.com"
+        "EXPO_PUBLIC_API_BASE_URL": "http://172.30.1.22:8080"
+      }
+    },
+    "preview-emulator": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:8080"
       }
     },
     "production": {

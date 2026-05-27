@@ -37,7 +37,8 @@ class PlayerController(
         ApiResponse.ok(playerService.getPlayerRankings(type.lowercase(), "pitcher"))
 
     @GetMapping("/{playerId}")
-    @Cacheable("playerProfile")
+    // birthDate 가 비어있는 stub 응답은 캐시하지 않아 다음 조회에서 lazy crawl 이 다시 시도되도록 한다
+    @Cacheable("playerProfile", unless = "#result?.data?.birthDate == null")
     fun getPlayer(@PathVariable playerId: String): ApiResponse<PlayerProfileDto> =
         ApiResponse.ok(playerService.getPlayerProfile(playerId))
 

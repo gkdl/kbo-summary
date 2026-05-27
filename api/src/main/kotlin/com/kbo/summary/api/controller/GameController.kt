@@ -30,7 +30,8 @@ class GameController(
         ApiResponse.ok(gameService.getGameDetail(gameId))
 
     @GetMapping("/{gameId}/summary")
-    @Cacheable("gameSummary")
+    // Gemini 429/네트워크 실패로 받은 fallback 메시지는 캐싱하지 않아 다음 호출에서 재시도되게 한다
+    @Cacheable("gameSummary", unless = "#result?.data?.summary == '요약을 불러올 수 없습니다'")
     fun getGameSummary(@PathVariable gameId: String): ApiResponse<GameSummaryDto> =
         ApiResponse.ok(gameService.getGameSummary(gameId))
 }

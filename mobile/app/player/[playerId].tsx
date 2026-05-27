@@ -1,9 +1,10 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../../hooks/useTheme";
 
 import { apiClient } from "../../api/client";
+import { AdBanner } from "../../components/AdBanner";
 import { ErrorState } from "../../components/ErrorState";
 import { PlayerGameLogTable } from "../../components/PlayerGameLogTable";
 import { PlayerProfileHeader } from "../../components/PlayerProfileHeader";
@@ -47,7 +48,8 @@ export default function PlayerDetailScreen() {
   const team = profile.teamCode ? getTeam(profile.teamCode) : undefined;
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView contentContainerStyle={styles.content}>
       <PlayerProfileHeader profile={profile} />
 
       {profile.teamCode ? (
@@ -92,7 +94,10 @@ export default function PlayerDetailScreen() {
           통산 기록은 API에 노출 후 표시됩니다
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+      {/* 화면 하단에 항상 고정 */}
+      <AdBanner />
+    </View>
   );
 }
 

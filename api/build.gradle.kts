@@ -35,6 +35,10 @@ dependencies {
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
 
+    api(files("libs/oraclepki.jar"))
+    api(files("libs/osdt_core.jar"))
+    api(files("libs/osdt_cert.jar"))
+
     runtimeOnly("com.oracle.database.jdbc:ojdbc11")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

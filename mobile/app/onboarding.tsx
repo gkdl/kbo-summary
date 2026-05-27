@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import { TeamSelector } from "../components/TeamSelector";
 import { userPrefs } from "../storage/userPrefs";

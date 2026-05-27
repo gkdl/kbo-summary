@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import { getTeam } from "../constants/teams";
 import type { Game } from "../types/game";
@@ -20,7 +20,9 @@ export function ScoreCard({ game }: Props) {
   const router = useRouter();
   const away = getTeam(game.awayTeamCode);
   const home = getTeam(game.homeTeamCode);
-  const finished = game.status === "FINISHED";
+  // 점수는 항상 표시 — 예정/진행 중 경기는 KBO 가 null 또는 0 을 주므로 ?? 0 으로 0:0 fallback.
+  const awayScore = game.awayScore ?? 0;
+  const homeScore = game.homeScore ?? 0;
 
   return (
     <Pressable
@@ -44,7 +46,7 @@ export function ScoreCard({ game }: Props) {
           </Text>
         </View>
         <Text style={[styles.score, { color: colors.text }]}>
-          {finished ? `${game.awayScore ?? 0} : ${game.homeScore ?? 0}` : "vs"}
+          {awayScore} : {homeScore}
         </Text>
         <View style={[styles.teamSide, styles.teamSideRight]}>
           <Text style={[styles.team, { color: colors.text }]}>

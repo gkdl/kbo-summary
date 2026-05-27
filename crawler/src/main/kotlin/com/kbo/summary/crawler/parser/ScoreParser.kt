@@ -25,14 +25,13 @@ data class GameScoreDto(
 )
 
 /**
- * KBO 스코어보드(GetScoreBoardScroll) 응답 파서.
+ * KBO 스코어보드(POST /ws/Schedule.asmx/GetScoreBoardScroll) 응답 파서.
  *
- * 가정하는 JSON 구조:
- * {
- *   "gameId": "...",
- *   "home": { "innings": [0,1,0,2], "r": 5, "h": 9, "e": 0, "b": 3 },
- *   "away": { "innings": [1,0,0,0], "r": 1, "h": 6, "e": 1, "b": 2 }
- * }
+ * 실제 응답:
+ * { "G_ID": "...", "code": "100",
+ *   "table2": "<이닝별 JSON 문자열>", "table3": "<R/H/E/B JSON 문자열>" }
+ * - table2/table3 은 문자열로 인코딩된 중첩 JSON → 다시 파싱한다
+ * - rows[0] = 어웨이, rows[1] = 홈. 셀의 "-" 는 진행하지 않은 이닝.
  */
 @Component
 class ScoreParser(
@@ -40,50 +39,62 @@ class ScoreParser(
 ) {
     fun parseScore(json: String): GameScoreDto {
         val root = objectMapper.parseTree(json)
-        val home = root.teamNode("home", "homeTeam", "hScore")
-        val away = root.teamNode("away", "awayTeam", "aScore")
-        if (home.isMissingNode && away.isMissingNode) {
-            throw CrawlerException("스코어보드 응답에서 점수 데이터를 찾을 수 없습니다")
+        if (root.path("code").asText() != SUCCESS_CODE) {
+            throw CrawlerException("스코어보드 응답 실패: ${root.path("msg").asText()}")
         }
 
-        val homeInnings = inningRuns(home)
-        val awayInnings = inningRuns(away)
-        val innings = (1..maxOf(homeInnings.size, awayInnings.size)).map { index ->
-            InningScoreDto(
-                inning = index,
-                homeRuns = homeInnings.getOrElse(index - 1) { 0 },
-                awayRuns = awayInnings.getOrElse(index - 1) { 0 },
-            )
+        val inningTable = objectMapper.parseTree(root.path("table2").asText())
+        val awayInnings = cellInts(inningTable, AWAY_ROW)
+        val homeInnings = cellInts(inningTable, HOME_ROW)
+        val innings = (0 until maxOf(awayInnings.size, homeInnings.size)).mapNotNull { index ->
+            val away = awayInnings.getOrNull(index)
+            val home = homeInnings.getOrNull(index)
+            if (away == null && home == null) {
+                null
+            } else {
+                InningScoreDto(inning = index + 1, homeRuns = home ?: 0, awayRuns = away ?: 0)
+            }
         }
+
+        val rhebTable = objectMapper.parseTree(root.path("table3").asText())
+        val away = rheb(rhebTable, AWAY_ROW)
+        val home = rheb(rhebTable, HOME_ROW)
 
         return GameScoreDto(
-            gameId = root.text("gameId", "g_id", "gameSc"),
+            gameId = root.path("G_ID").asText(),
             innings = innings,
-            homeR = home.intOf("r", "run", "runs", "score"),
-            homeH = home.intOf("h", "hit", "hits"),
-            homeE = home.intOf("e", "err", "error", "errors"),
-            homeB = home.intOf("b", "bb", "walk", "walks"),
-            awayR = away.intOf("r", "run", "runs", "score"),
-            awayH = away.intOf("h", "hit", "hits"),
-            awayE = away.intOf("e", "err", "error", "errors"),
-            awayB = away.intOf("b", "bb", "walk", "walks"),
+            homeR = home[0],
+            homeH = home[1],
+            homeE = home[2],
+            homeB = home[3],
+            awayR = away[0],
+            awayH = away[1],
+            awayE = away[2],
+            awayB = away[3],
         )
     }
 
-    private fun JsonNode.teamNode(vararg fieldNames: String): JsonNode {
-        for (name in fieldNames) {
-            val node = path(name)
-            if (node.isObject) return node
-        }
-        return path(fieldNames.first())
+    // 이닝별 셀 → Int? 목록 ("-" 등 숫자가 아니면 null = 미진행 이닝)
+    private fun cellInts(table: JsonNode, rowIndex: Int): List<Int?> {
+        val row = table.path("rows").path(rowIndex).path("row")
+        if (!row.isArray) return emptyList()
+        return row.map { it.path("Text").asText().trim().toIntOrNull() }
     }
 
-    private fun inningRuns(teamNode: JsonNode): List<Int> =
-        teamNode.firstArrayOf("innings", "inning", "scores", "byInning").map { node ->
-            when {
-                node.isNumber -> node.asInt()
-                node.isObject -> node.intOf("run", "runs", "score", "r")
-                else -> node.asText().trim().toIntOrNull() ?: 0
-            }
+    // R/H/E/B 4개 값 (부족하면 0으로 채움)
+    private fun rheb(table: JsonNode, rowIndex: Int): List<Int> {
+        val row = table.path("rows").path(rowIndex).path("row")
+        val values = if (row.isArray) {
+            row.map { it.path("Text").asText().trim().toIntOrNull() ?: 0 }
+        } else {
+            emptyList()
         }
+        return List(4) { values.getOrElse(it) { 0 } }
+    }
+
+    private companion object {
+        const val SUCCESS_CODE = "100"
+        const val AWAY_ROW = 0
+        const val HOME_ROW = 1
+    }
 }

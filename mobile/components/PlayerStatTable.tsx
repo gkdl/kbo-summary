@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import type { HittingLine, PitchingLine, PlayerStat } from "../types/player";
 

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import type { GameSummary } from "../types/game";
 import { SkeletonLoader } from "./SkeletonLoader";

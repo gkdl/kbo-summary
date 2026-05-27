@@ -30,6 +30,8 @@ class WebClientConfig {
             .defaultHeader(HttpHeaders.ACCEPT, "application/json, text/plain, */*")
             .defaultHeader(HttpHeaders.ACCEPT_LANGUAGE, "ko-KR,ko;q=0.9")
             .defaultHeader("X-Requested-With", "XMLHttpRequest")
+            // KBO .asmx 엔드포인트는 koreabaseball.com Referer 가 없으면 에러 페이지를 반환한다
+            .defaultHeader(HttpHeaders.REFERER, "https://www.koreabaseball.com/")
             .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(MAX_IN_MEMORY_BYTES) }
             .build()
     }

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../../hooks/useTheme";
 
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
@@ -19,6 +20,13 @@ function toYyyymmdd(d: Date): string {
   return `${y}${m}${day}`;
 }
 
+function parseYyyymmdd(yyyymmdd: string): Date {
+  const y = Number(yyyymmdd.slice(0, 4));
+  const m = Number(yyyymmdd.slice(4, 6)) - 1;
+  const d = Number(yyyymmdd.slice(6, 8));
+  return new Date(y, m, d);
+}
+
 function shiftDays(yyyymmdd: string, delta: number): string {
   const y = Number(yyyymmdd.slice(0, 4));
   const m = Number(yyyymmdd.slice(4, 6)) - 1;
@@ -33,6 +41,7 @@ function displayDate(yyyymmdd: string): string {
 export default function HomeScreen() {
   const { colors } = useTheme();
   const [selectedDate, setSelectedDate] = useState(toYyyymmdd(new Date()));
+  const [pickerVisible, setPickerVisible] = useState(false);
   const myTeam = useAppStore((state) => state.myTeam);
 
   const gamesQuery = useGames(selectedDate);
@@ -50,12 +59,32 @@ export default function HomeScreen() {
       <Pressable onPress={() => setSelectedDate((d) => shiftDays(d, -1))}>
         <Text style={[styles.navButton, { color: colors.primary }]}>← 어제</Text>
       </Pressable>
-      <Pressable onPress={() => setSelectedDate(toYyyymmdd(new Date()))}>
+      <Pressable
+        onPress={() => setPickerVisible(true)}
+        onLongPress={() => setSelectedDate(toYyyymmdd(new Date()))}
+      >
         <Text style={[styles.dateText, { color: colors.text }]}>{displayDate(selectedDate)}</Text>
       </Pressable>
       <Pressable onPress={() => setSelectedDate((d) => shiftDays(d, 1))}>
         <Text style={[styles.navButton, { color: colors.primary }]}>다음 →</Text>
       </Pressable>
+
+      <DateTimePickerModal
+        isVisible={pickerVisible}
+        mode="date"
+        date={parseYyyymmdd(selectedDate)}
+        // 시즌 종료 후 너무 먼 미래까지 가지 않도록 1년 범위로 제한
+        minimumDate={new Date(new Date().getFullYear() - 1, 0, 1)}
+        maximumDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+        locale="ko-KR"
+        confirmTextIOS="선택"
+        cancelTextIOS="취소"
+        onConfirm={(date) => {
+          setSelectedDate(toYyyymmdd(date));
+          setPickerVisible(false);
+        }}
+        onCancel={() => setPickerVisible(false)}
+      />
     </View>
   );
 

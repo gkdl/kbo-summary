@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../../hooks/useTheme";
 
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
@@ -84,6 +84,7 @@ export default function PlayersScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
             contentContainerStyle={styles.categoryRow}
           >
             {categories.map((cat) => (
@@ -139,7 +140,9 @@ const styles = StyleSheet.create({
   },
   toggleButton: { flex: 1, paddingVertical: 10, alignItems: "center" },
   toggleText: { fontSize: 14, fontWeight: "600" },
-  categoryRow: { paddingHorizontal: 12, paddingVertical: 4, gap: 8 },
+  // horizontal ScrollView 가 column 부모 안에서 세로로 stretch 되지 않도록 flexGrow: 0
+  categoryScroll: { flexGrow: 0 },
+  categoryRow: { paddingHorizontal: 12, paddingVertical: 4, gap: 8, alignItems: "center" },
   categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1 },
   categoryText: { fontSize: 13, fontWeight: "600" },
   listWrap: { flex: 1, padding: 12 },

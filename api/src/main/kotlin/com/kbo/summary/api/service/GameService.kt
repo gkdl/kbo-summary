@@ -1,14 +1,22 @@
 package com.kbo.summary.api.service
 
+import com.kbo.summary.api.client.GeminiClient
 import com.kbo.summary.core.domain.Game
 import com.kbo.summary.core.domain.GameScore
 import com.kbo.summary.core.domain.GameStatus
 import com.kbo.summary.core.domain.GameSummary
+import com.kbo.summary.core.dto.BoxHitterDto
+import com.kbo.summary.core.dto.BoxPitcherDto
 import com.kbo.summary.core.dto.GameDetailDto
 import com.kbo.summary.core.dto.GameDto
 import com.kbo.summary.core.dto.GameSummaryDto
+import com.kbo.summary.core.dto.HighlightDto
 import com.kbo.summary.core.dto.InningScoreDto
 import com.kbo.summary.core.dto.TeamLineDto
+import com.kbo.summary.crawler.parser.BoxScoreDto
+import com.kbo.summary.crawler.parser.HitterRecordDto
+import com.kbo.summary.crawler.parser.PitcherRecordDto
+import com.kbo.summary.crawler.parser.HighlightDto as CrawlerHighlightDto
 import com.kbo.summary.core.exception.GameNotFoundException
 import com.kbo.summary.core.exception.SummaryException
 import com.kbo.summary.crawler.repository.GameRepository
@@ -19,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private val crawlFallbackLog = LoggerFactory.getLogger("com.kbo.summary.api.service.CrawlFallback")
 
@@ -52,11 +61,21 @@ class GameService(
     private val gameScoreRepository: GameScoreRepository,
     private val gameSummaryRepository: GameSummaryRepository,
     private val gameCrawlerService: GameCrawlerService,
+    private val geminiClient: GeminiClient,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun getGamesByDate(date: LocalDate): List<GameDto> {
+        // 진행 중·예정 경기는 매 조회마다 새로고침, 옛 잘못된 점수 데이터도 같이 교정됨.
+        // 충분히 과거(7일 이전)인 종료 경기는 더 이상 변하지 않으니 DB 캐시만 사용.
+        val today = LocalDate.now()
+        val needsRefresh = !date.isBefore(today.minusDays(7))
+        if (needsRefresh) {
+            crawlSafely { gameCrawlerService.crawlGamesOn(date) }
+        }
         var games = gameRepository.findByGameDate(date)
-        if (games.isEmpty() && date == LocalDate.now()) {
-            crawlSafely { gameCrawlerService.crawlTodayGames() }
+        if (games.isEmpty() && !needsRefresh) {
+            crawlSafely { gameCrawlerService.crawlGamesOn(date) }
             games = gameRepository.findByGameDate(date)
         }
         return games.map { it.toGameDto() }
@@ -66,26 +85,62 @@ class GameService(
         val game = gameRepository.findByGameId(gameId)
             ?: throw GameNotFoundException(gameId)
         var scores = gameScoreRepository.findByGameId(gameId)
-        if (scores.isEmpty()) {
+        // 시작 전 경기는 GameScore 자체가 없음. 그 외엔 옛 잘못된 점수 데이터 교정을 위해
+        // 최근 7일 이내 경기는 매번 fresh crawl (crawlGameScore 가 기존 행 삭제 후 새로 저장).
+        val isRecent = !game.gameDate.isBefore(LocalDate.now().minusDays(7))
+        if (game.status != GameStatus.SCHEDULED && (scores.isEmpty() || isRecent)) {
             crawlSafely { gameCrawlerService.crawlGameScore(gameId) }
             scores = gameScoreRepository.findByGameId(gameId)
         }
-        return buildGameDetail(game, scores)
+        // 박스스코어/하이라이트는 영속화 엔티티가 없어 매 요청마다 KBO 호출. 시작 전 경기는 데이터 없음.
+        val boxScore = if (game.status == GameStatus.SCHEDULED) null else fetchBoxScoreSafely(game)
+        // 하이라이트는 종료된 경기만 (보통 종료 후 영상 업로드되기까지 시차 있음)
+        val highlight = if (game.status == GameStatus.FINISHED) fetchHighlightSafely(game.gameId) else null
+        return buildGameDetail(game, scores, boxScore, highlight)
     }
 
+    private fun fetchBoxScoreSafely(game: Game): BoxScoreDto? =
+        runCatching {
+            runBlocking {
+                gameCrawlerService.crawlBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
+            }
+        }.getOrNull()
+
+    private fun fetchHighlightSafely(gameId: String): CrawlerHighlightDto? =
+        runCatching { runBlocking { gameCrawlerService.crawlHighlight(gameId) } }.getOrNull()
+
     fun getGameSummary(gameId: String): GameSummaryDto {
-        gameSummaryRepository.findByGameId(gameId)?.let { return it.toDto() }
+        gameSummaryRepository.findByGameId(gameId)?.let {
+            log.info("요약 DB 캐시 hit (Gemini 호출 없이 재사용): gameId={}", gameId)
+            return it.toDto()
+        }
 
         val game = gameRepository.findByGameId(gameId)
             ?: throw GameNotFoundException(gameId)
         if (game.status != GameStatus.FINISHED) {
             throw SummaryException("종료된 경기만 요약할 수 있습니다: $gameId")
         }
-        val generated = GameSummary(gameId = gameId, summary = generateSummary(game))
-        return gameSummaryRepository.save(generated).toDto()
+
+        log.info("요약 신규 생성 (Gemini 호출): gameId={}", gameId)
+        val detail = buildGameDetail(game, gameScoreRepository.findByGameId(gameId), null, null)
+        val summaryText = runBlocking { geminiClient.generateSummary(detail) }
+
+        // 호출 실패 시 fallback 문구는 저장하지 않아 다음 요청에서 재시도된다
+        if (summaryText == GeminiClient.FALLBACK_MESSAGE) {
+            log.warn("요약 실패 — 다음 요청에서 재시도: gameId={}", gameId)
+            return GameSummaryDto(gameId = gameId, summary = summaryText, createdAt = LocalDateTime.now())
+        }
+        val saved = gameSummaryRepository.save(GameSummary(gameId = gameId, summary = summaryText))
+        log.info("요약 DB 저장 완료 (이후 모든 사용자가 재사용): gameId={}", gameId)
+        return saved.toDto()
     }
 
-    private fun buildGameDetail(game: Game, scores: List<GameScore>): GameDetailDto {
+    private fun buildGameDetail(
+        game: Game,
+        scores: List<GameScore>,
+        boxScore: BoxScoreDto?,
+        highlight: CrawlerHighlightDto?,
+    ): GameDetailDto {
         val ordered = scores.sortedBy { it.inning }
         val innings = ordered
             .filter { it.inning > 0 }
@@ -106,20 +161,43 @@ class GameService(
                 errors = totals?.awayE ?: 0,
                 walks = totals?.awayB ?: 0,
             ),
+            awayHitters = boxScore?.awayHitters?.map { it.toDto() } ?: emptyList(),
+            homeHitters = boxScore?.homeHitters?.map { it.toDto() } ?: emptyList(),
+            awayPitchers = boxScore?.awayPitchers?.map { it.toDto() } ?: emptyList(),
+            homePitchers = boxScore?.homePitchers?.map { it.toDto() } ?: emptyList(),
+            highlight = highlight?.let { HighlightDto(youtubeVideoId = it.youtubeVideoId, title = it.title) },
         )
     }
 
-    // 실제 LLM 연동 전 임시 구현: 경기 데이터 기반 템플릿 요약을 생성한다.
-    private fun generateSummary(game: Game): String {
-        val homeScore = game.homeScore ?: 0
-        val awayScore = game.awayScore ?: 0
-        val result = when {
-            homeScore > awayScore -> "${game.homeTeamCode}가 $homeScore-$awayScore 로 승리"
-            awayScore > homeScore -> "${game.awayTeamCode}가 $awayScore-$homeScore 로 승리"
-            else -> "$homeScore-$awayScore 무승부"
-        }
-        return "${game.gameDate} ${game.awayTeamCode}(원정) vs ${game.homeTeamCode}(홈) 경기는 $result 로 마무리됐습니다."
-    }
+    private fun HitterRecordDto.toDto(): BoxHitterDto = BoxHitterDto(
+        playerName = playerName,
+        battingOrder = battingOrder,
+        position = position,
+        teamCode = teamCode,
+        atBats = atBats,
+        hits = hits,
+        rbi = rbi,
+        runs = runs,
+        avg = avg,
+    )
+
+    private fun PitcherRecordDto.toDto(): BoxPitcherDto = BoxPitcherDto(
+        playerName = playerName,
+        teamCode = teamCode,
+        role = role,
+        decision = decision,
+        inningsPitched = inningsPitched,
+        pitchCount = pitchCount,
+        battersFaced = battersFaced,
+        atBats = atBats,
+        hits = hits,
+        homeRuns = homeRuns,
+        walks = walks,
+        strikeOuts = strikeOuts,
+        runs = runs,
+        earnedRuns = earnedRuns,
+        era = era,
+    )
 
     private fun GameSummary.toDto(): GameSummaryDto =
         GameSummaryDto(gameId = gameId, summary = summary, createdAt = createdAt)

@@ -55,7 +55,7 @@ class KboWebClient(
                 log.warn("KBO 요청 실패 ({}): {}", label, e.message)
             }
         }
-        throw CrawlerException("KBO 요청 실패: $label ($MAX_RETRIES회 재시도 초과)", lastError)
+        throw CrawlerException("KBO 요청 실패: $label (${MAX_RETRIES}회 재시도 초과)", lastError)
     }
 
     companion object {

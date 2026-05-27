@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 interface Props {
   message?: string;
@@ -10,6 +10,9 @@ export function ErrorState({ message = "데이터를 불러올 수 없습니다"
   const { colors } = useTheme();
   return (
     <View style={styles.container}>
+      <Text style={{ fontSize: 10, color: 'red', textAlign: 'center', padding: 4 }}>
+        API: {process.env.EXPO_PUBLIC_API_BASE_URL ?? '(none)'}
+      </Text>
       <Text style={styles.icon}>⚠️</Text>
       <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
       {onRetry ? (

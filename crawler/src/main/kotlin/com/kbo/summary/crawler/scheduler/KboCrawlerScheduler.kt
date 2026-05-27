@@ -1,7 +1,7 @@
 package com.kbo.summary.crawler.scheduler
 
+import com.kbo.summary.core.domain.GameStatus
 import com.kbo.summary.crawler.parser.KBO_TEAM_CODES
-import com.kbo.summary.crawler.repository.PlayerRepository
 import com.kbo.summary.crawler.service.GameCrawlerService
 import com.kbo.summary.crawler.service.PlayerCrawlerService
 import com.kbo.summary.crawler.service.TeamCrawlerService
@@ -22,7 +22,6 @@ class KboCrawlerScheduler(
     private val gameCrawlerService: GameCrawlerService,
     private val teamCrawlerService: TeamCrawlerService,
     private val playerCrawlerService: PlayerCrawlerService,
-    private val playerRepository: PlayerRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,48 +33,44 @@ class KboCrawlerScheduler(
         }
         runBlocking {
             gameCrawlerService.crawlTodayGames().forEach { game ->
+                // 시작 전 경기는 스코어보드 데이터가 없어 KBO 가 code=200 응답을 준다 — 호출 자체를 skip
+                if (game.status == GameStatus.SCHEDULED) return@forEach
                 runCatching { gameCrawlerService.crawlGameScore(game.gameId) }
                     .onFailure { log.error("스코어 갱신 실패 (gameId={}): {}", game.gameId, it.message) }
             }
         }
     }
 
-    // 팀/선수 시즌 기록 갱신 — 매일 06:00
-    @Scheduled(cron = "0 0 6 * * *")
-    fun refreshSeasonStats() = runScheduled("팀/선수 시즌 기록 갱신") {
-        runBlocking {
-            teamCodes().forEach { teamCode ->
-                runCatching { teamCrawlerService.crawlTeamStats(teamCode) }
-                    .onFailure { log.error("팀 기록 갱신 실패 ({}): {}", teamCode, it.message) }
-            }
-            playerRepository.findAll().forEach { player ->
-                runCatching { playerCrawlerService.crawlPlayerStat(player.playerId) }
-                    .onFailure { log.error("선수 기록 갱신 실패 ({}): {}", player.playerId, it.message) }
-            }
-        }
-    }
-
-    // 팀 순위 갱신 — 매일 09:00
-    @Scheduled(cron = "0 0 9 * * *")
-    fun refreshStandings() = runScheduled("팀 순위 갱신") {
-        runBlocking { gameCrawlerService.crawlStandings() }
-    }
-
-    // 상대전적 캐시 갱신 — 매일 00:10
-    @Scheduled(cron = "0 10 0 * * *")
-    fun refreshHeadToHeadCache() = runScheduled("상대전적 캐시 갱신") {
-        // 상대전적 캐시 서비스는 아직 구현되지 않음 — 전용 서비스 추가 시 호출 연결 예정
-        log.info("상대전적 캐시 갱신 — 구현 대기 중")
-    }
-
     // 팀 로스터 갱신 — 매주 월요일 03:00
-    @Scheduled(cron = "0 0 3 * * MON")
+    @Scheduled(cron = "0 57 3 * * *")
     fun refreshTeamRosters() = runScheduled("팀 로스터 갱신") {
         runBlocking {
             teamCodes().forEach { teamCode ->
                 runCatching { teamCrawlerService.crawlTeamRoster(teamCode) }
                     .onFailure { log.error("로스터 갱신 실패 ({}): {}", teamCode, it.message) }
             }
+        }
+    }
+
+    // 선수/팀 시즌 기록 갱신 — 매일 06:00. 한 페이지에서 22명씩 한 번에 수집되므로 선수별 호출 없음
+    @Scheduled(cron = "0 57 3 * * *")
+    fun refreshSeasonStats() = runScheduled("선수/팀 시즌 기록 갱신") {
+        runBlocking {
+            runCatching { playerCrawlerService.crawlHitterSeasonStats() }
+                .onFailure { log.error("타자 시즌기록 갱신 실패: {}", it.message) }
+            runCatching { playerCrawlerService.crawlPitcherSeasonStats() }
+                .onFailure { log.error("투수 시즌기록 갱신 실패: {}", it.message) }
+            runCatching { teamCrawlerService.crawlTeamSeasonStats() }
+                .onFailure { log.error("팀 시즌기록 갱신 실패: {}", it.message) }
+        }
+    }
+
+    // 팀 순위 갱신 — 매일 09:00
+    @Scheduled(cron = "0 59 3 * * *")
+    fun refreshStandings() = runScheduled("팀 순위 갱신") {
+        runBlocking {
+            runCatching { teamCrawlerService.crawlStandings() }
+                .onFailure { log.error("팀 순위 갱신 실패: {}", it.message) }
         }
     }
 

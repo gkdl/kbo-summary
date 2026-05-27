@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 import { getTeam } from "../constants/teams";
 import type { InningScore, TeamLine } from "../types/game";
@@ -20,12 +20,14 @@ export function InningTable({ awayTeamCode, homeTeamCode, innings, awayLine, hom
   const homeRuns = homeLine?.runs ?? innings.reduce((sum, i) => sum + i.homeRuns, 0);
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={[styles.wrapper, { borderColor: colors.border, backgroundColor: colors.card }]}
-    >
-      <View>
+    <View style={[styles.wrapper, { borderColor: colors.border, backgroundColor: colors.card }]}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        // horizontal ScrollView 가 column 부모 안에서 세로 stretch 되지 않도록 flexGrow:0
+        style={styles.scroll}
+      >
+        <View>
         <View style={[styles.row, styles.header, { borderBottomColor: colors.border }]}>
           <Cell style={styles.teamCell} color={colors.text} bold>
             팀
@@ -70,8 +72,9 @@ export function InningTable({ awayTeamCode, homeTeamCode, innings, awayLine, hom
           <Cell color={colors.text} style={styles.totalCell}>{homeLine?.errors ?? "-"}</Cell>
           <Cell color={colors.text} style={styles.totalCell}>{homeLine?.walks ?? "-"}</Cell>
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -93,7 +96,9 @@ function Cell({ children, color, bold, style }: CellProps) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { borderRadius: 8, borderWidth: 1 },
+  // 외부 View 가 화면 폭 안에 들어가도록 width:100%, overflow:hidden 으로 horizontal scroll 영역을 가둔다
+  wrapper: { borderRadius: 8, borderWidth: 1, width: "100%", overflow: "hidden" },
+  scroll: { flexGrow: 0 },
   row: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,5 +1,5 @@
 import { StyleSheet, TextInput, View } from "react-native";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../hooks/useTheme";
 
 interface Props {
   value: string;

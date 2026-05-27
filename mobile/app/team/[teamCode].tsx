@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../../hooks/useTheme";
 
+import { AdBanner } from "../../components/AdBanner";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
 import { HeadToHeadCard } from "../../components/HeadToHeadCard";
@@ -46,7 +47,8 @@ export default function TeamDetailScreen() {
   const standing = rankingsQuery.data?.find((s) => s.teamCode === code);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView contentContainerStyle={styles.content}>
       <TeamCard
         team={team}
         recentForm={recentFormQuery.data?.recentForm.slice(0, 10)}
@@ -107,7 +109,10 @@ export default function TeamDetailScreen() {
           )}
         </View>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+      {/* 화면 하단에 항상 고정 */}
+      <AdBanner />
+    </View>
   );
 }
 
