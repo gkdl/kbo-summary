@@ -25,6 +25,11 @@ out/
 # ===== Oracle 로컬 데이터 =====
 oracle_data/
 
+# ===== GCP Service Account Keys (절대 커밋 금지) =====
+gha-key.json
+*-sa.json
+service-account*.json
+
 # ===== Oracle Autonomous DB Wallet (절대 커밋 금지) =====
 wallet/
 Wallet*/
