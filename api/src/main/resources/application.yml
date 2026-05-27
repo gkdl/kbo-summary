@@ -17,9 +17,10 @@ spring:
     baseline-on-migrate: true
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
-    url: jdbc:oracle:thin:@p0mpe7dp2i5vywqf_tp
-    username: SCRIPT
-    password: QAZwsx123!@$
+    # TNS alias 는 wallet 의 tnsnames.ora 에 정의됨. 실행 시 -Doracle.net.tns_admin=/path/to/wallet 또는 TNS_ADMIN 환경변수 필요.
+    url: ${DB_URL:jdbc:oracle:thin:@p0mpe7dp2i5vywqf_tp}
+    username: ${DB_USERNAME:SCRIPT}
+    password: ${DB_PASSWORD:}
 server:
   port: ${SERVER_PORT:8080}
 
