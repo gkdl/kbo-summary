@@ -29,10 +29,18 @@ RUN ./gradlew :api:bootJar --no-daemon
 FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
+# unzip — entrypoint 가 WALLET_B64 (base64 인코딩 wallet zip) 를 풀 때 사용
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
+
 # 부트 jar 만 가져오면 충분 (의존성은 jar 내부에 포함됨)
 COPY --from=build /workspace/api/build/libs/*.jar app.jar
 
+# entrypoint 스크립트: WALLET_B64 디코딩 → TNS_ADMIN 설정 → java 실행
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 8080
 
-# Spring Boot 컨테이너 환경에서 PID 1 시그널 처리를 위해 직접 java 호출
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

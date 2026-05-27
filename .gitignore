@@ -35,6 +35,8 @@ sqlnet.ora
 keystore.jks
 truststore.jks
 ojdbc.properties
+# encode-wallet.ps1 산출물
+scripts/.wallet.b64.txt
 
 # ===== 로그 =====
 *.log
