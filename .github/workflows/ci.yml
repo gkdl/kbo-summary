@@ -50,18 +50,4 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  deploy:
-    name: Deploy to Railway
-    needs: [backend, mobile]
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-
-      - name: Deploy
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --detach
+# 배포는 deploy-api.yml (GCP VM 으로 SSH + docker rebuild) 가 담당.

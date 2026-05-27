@@ -1,0 +1,57 @@
+name: Deploy API to GCP VM
+
+on:
+  # main 브랜치에 push 되면 자동 배포
+  push:
+    branches: [main]
+    paths:
+      # api/crawler/core/Dockerfile/docker-entrypoint 변경 시에만 트리거 (모바일만 바뀐 푸시는 스킵)
+      - 'api/**'
+      - 'crawler/**'
+      - 'core/**'
+      - 'Dockerfile'
+      - 'docker-entrypoint.sh'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/deploy-api.yml'
+
+  # 수동 실행도 가능 (Actions 탭에서 Run workflow 버튼)
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: GCP 인증 (service account JSON)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: gcloud CLI 셋업
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: VM 에서 deploy.sh 실행
+        run: |
+          gcloud compute ssh instance-20260527-113725 \
+            --zone=us-west1-a \
+            --tunnel-through-iap \
+            --command="bash -lc 'cd ~/kbo-summary && ./deploy.sh 2>&1 | tail -100'"
+
+      - name: 헬스 체크
+        run: |
+          # 컨테이너 부팅 대기 (Spring Boot 가 뜰 시간)
+          for i in 1 2 3 4 5 6; do
+            sleep 10
+            if curl -fsS http://104.198.2.246:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "✓ Health check OK (시도 $i)"
+              exit 0
+            fi
+            echo "헬스 체크 대기 중... ($i/6)"
+          done
+          echo "헬스 체크 실패"
+          exit 1
