@@ -49,7 +49,8 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemedStack />
-      <DebugOverlay />
+      {/* DebugOverlay 는 dev 빌드에서만 표시 (release 에선 자동 제거) */}
+      {__DEV__ ? <DebugOverlay /> : null}
     </QueryClientProvider>
   );
 }
