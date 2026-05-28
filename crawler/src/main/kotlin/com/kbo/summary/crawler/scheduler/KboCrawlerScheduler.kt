@@ -36,7 +36,16 @@ class KboCrawlerScheduler(
                 // 시작 전 경기는 스코어보드 데이터가 없어 KBO 가 code=200 응답을 준다 — 호출 자체를 skip
                 if (game.status == GameStatus.SCHEDULED) return@forEach
                 runCatching { gameCrawlerService.crawlGameScore(game.gameId) }
-                    .onFailure { log.error("스코어 갱신 실패 (gameId={}): {}", game.gameId, it.message) }
+                    .onFailure { e ->
+                        // KBO 가 boxscore publish 전이면 .NET 의 "입력 문자열의 형식이 잘못되었습니다" 를 던짐.
+                        // 다음 사이클이 따라잡으므로 ERROR 가 아닌 WARN 으로 낮춤.
+                        val msg = e.message ?: ""
+                        if (msg.contains("입력 문자열의 형식") || msg.contains("스코어보드 응답 실패")) {
+                            log.warn("스코어 미공개 (gameId={}): KBO 가 아직 boxscore 데이터 미발행", game.gameId)
+                        } else {
+                            log.error("스코어 갱신 실패 (gameId={}): {}", game.gameId, msg)
+                        }
+                    }
             }
         }
     }

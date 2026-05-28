@@ -165,7 +165,8 @@ docker build -t kbo-api .
 docker run -d \
   --name kbo-api \
   --env-file .env \
-  -e JAVA_TOOL_OPTIONS="-Xmx500m -XX:MaxRAMPercentage=50" \
+  -e TZ=Asia/Seoul \
+  -e JAVA_TOOL_OPTIONS="-Xmx500m -XX:MaxRAMPercentage=50 -Duser.timezone=Asia/Seoul" \
   -p 8080:8080 \
   --restart unless-stopped \
   --memory=700m \
