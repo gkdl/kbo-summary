@@ -5,7 +5,7 @@ import { BottomTabBar } from "expo-router/build/react-navigation/bottom-tabs";
 import { Platform, StyleSheet, View } from "react-native";
 
 import { AdBanner } from "../../components/AdBanner";
-import { HomeIcon, PeopleIcon, TrophyIcon } from "../../components/icons/TabIcons";
+import { HomeIcon, PeopleIcon, TrophyIcon, VideoIcon } from "../../components/icons/TabIcons";
 import { useTheme } from "../../hooks/useTheme";
 
 const ICON_BY_ROUTE: Record<
@@ -13,6 +13,7 @@ const ICON_BY_ROUTE: Record<
   React.ComponentType<{ color: string; size?: number; focused?: boolean }>
 > = {
   index: HomeIcon,
+  highlights: VideoIcon,
   players: PeopleIcon,
   rankings: TrophyIcon,
 };
@@ -68,6 +69,7 @@ export default function TabsLayout() {
       })}
     >
       <Tabs.Screen name="index" options={{ title: "홈" }} />
+      <Tabs.Screen name="highlights" options={{ title: "하이라이트" }} />
       <Tabs.Screen name="players" options={{ title: "선수" }} />
       <Tabs.Screen name="rankings" options={{ title: "순위" }} />
     </Tabs>

@@ -64,6 +64,20 @@ data class HighlightDto(
     val title: String?,
 )
 
+/**
+ * 하이라이트 목록 화면용 — 게임 메타(스코어, 팀) + 하이라이트.
+ * /api/games/highlights?date=YYYYMMDD 응답 element.
+ */
+data class GameHighlightDto(
+    val gameId: String,
+    val gameDate: String,
+    val awayTeamCode: String,
+    val homeTeamCode: String,
+    val awayScore: Int?,
+    val homeScore: Int?,
+    val highlight: HighlightDto,
+)
+
 data class GameDetailDto(
     val game: GameDto,
     val inningScores: List<InningScoreDto>,

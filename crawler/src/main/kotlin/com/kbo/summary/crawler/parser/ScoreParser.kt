@@ -83,7 +83,7 @@ class ScoreParser(
 
     // R/H/E/B 4개 값 (부족하면 0으로 채움)
     private fun rheb(table: JsonNode, rowIndex: Int): List<Int> {
-        val row = table.path("rows").path(rowIndex).path("row")
+        val row = table.path("rows").path(rowI0ndex).path("row")
         val values = if (row.isArray) {
             row.map { it.path("Text").asText().trim().toIntOrNull() ?: 0 }
         } else {

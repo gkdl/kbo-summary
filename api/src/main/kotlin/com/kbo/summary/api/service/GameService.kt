@@ -9,6 +9,7 @@ import com.kbo.summary.core.dto.BoxHitterDto
 import com.kbo.summary.core.dto.BoxPitcherDto
 import com.kbo.summary.core.dto.GameDetailDto
 import com.kbo.summary.core.dto.GameDto
+import com.kbo.summary.core.dto.GameHighlightDto
 import com.kbo.summary.core.dto.GameSummaryDto
 import com.kbo.summary.core.dto.HighlightDto
 import com.kbo.summary.core.dto.InningScoreDto
@@ -108,6 +109,31 @@ class GameService(
 
     private fun fetchHighlightSafely(gameId: String): CrawlerHighlightDto? =
         runCatching { runBlocking { gameCrawlerService.crawlHighlight(gameId) } }.getOrNull()
+
+    /**
+     * 해당 날짜의 종료된 경기들의 하이라이트만 모아 반환.
+     * 하이라이트 영상이 없는 경기는 결과에서 제외.
+     */
+    fun getHighlightsByDate(date: LocalDate): List<GameHighlightDto> {
+        val games = getGamesByDate(date)
+        return games
+            .filter { it.status == "FINISHED" }
+            .mapNotNull { game ->
+                val crawlerHighlight = fetchHighlightSafely(game.gameId) ?: return@mapNotNull null
+                GameHighlightDto(
+                    gameId = game.gameId,
+                    gameDate = game.gameDate.toString(),
+                    awayTeamCode = game.awayTeamCode,
+                    homeTeamCode = game.homeTeamCode,
+                    awayScore = game.awayScore,
+                    homeScore = game.homeScore,
+                    highlight = HighlightDto(
+                        youtubeVideoId = crawlerHighlight.youtubeVideoId,
+                        title = crawlerHighlight.title,
+                    ),
+                )
+            }
+    }
 
     fun getGameSummary(gameId: String): GameSummaryDto {
         gameSummaryRepository.findByGameId(gameId)?.let {

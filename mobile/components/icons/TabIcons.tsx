@@ -159,6 +159,48 @@ export function TrophyIcon({ color, size = 22, focused }: Props) {
   );
 }
 
+/**
+ * 비디오/플레이어 아이콘 — 둥근 사각형 + 가운데 ▶ 삼각형.
+ * 하이라이트 탭 (YouTube 영상 모음) 용.
+ */
+export function VideoIcon({ color, size = 22, focused }: Props) {
+  const frameW = size * 0.95;
+  const frameH = size * 0.72;
+  const triSize = size * 0.32;
+  return (
+    <View style={[styles.box, { width: size, height: size }]}>
+      {/* 프레임 (둥근 사각형) */}
+      <View
+        style={{
+          width: frameW,
+          height: frameH,
+          borderRadius: 4,
+          backgroundColor: focused ? color : "transparent",
+          borderColor: color,
+          borderWidth: focused ? 0 : STROKE,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* 가운데 ▶ — focused 면 흰색, 아니면 라인색 */}
+        <View
+          style={{
+            width: 0,
+            height: 0,
+            borderLeftWidth: triSize,
+            borderTopWidth: triSize * 0.6,
+            borderBottomWidth: triSize * 0.6,
+            borderTopColor: "transparent",
+            borderBottomColor: "transparent",
+            borderLeftColor: focused ? "#FFFFFF" : color,
+            marginLeft: triSize * 0.3,
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   box: { alignItems: "center", justifyContent: "center" },
 });

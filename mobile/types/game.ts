@@ -70,6 +70,17 @@ export interface Highlight {
   title: string | null;
 }
 
+/** 하이라이트 탭 목록용 — 경기 메타 + 하이라이트 */
+export interface GameHighlight {
+  gameId: string;
+  gameDate: string;
+  awayTeamCode: string;
+  homeTeamCode: string;
+  awayScore: number | null;
+  homeScore: number | null;
+  highlight: Highlight;
+}
+
 export interface GameDetail {
   game: Game;
   inningScores: InningScore[];
