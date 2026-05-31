@@ -37,7 +37,7 @@ jobs:
       - name: VM 에서 deploy.sh 실행
         run: |
           ssh -i ~/.ssh/id_ed25519 lim@104.198.2.246 \
-            "cd /home/lim/kbo-summary && bash deploy.sh 2>&1 | tail -100"
+            "cd /home/lim/kbo-summary && bash deploy.sh 2>&1"
 
       - name: 헬스 체크
         run: |
