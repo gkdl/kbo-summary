@@ -25,22 +25,17 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: GCP 인증 (service account JSON)
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: gcloud CLI 셋업
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: SSH 키 등록
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 104.198.2.246 >> ~/.ssh/known_hosts
 
       - name: VM 에서 deploy.sh 실행
         run: |
-          gcloud compute ssh lim@instance-20260527-113725 \
-            --zone=us-west1-a \
-            --tunnel-through-iap \
-            --command="bash -lc 'cd /home/lim/kbo-summary && ./deploy.sh 2>&1 | tail -100'"
+          ssh -i ~/.ssh/id_ed25519 lim@104.198.2.246 \
+            "cd /home/lim/kbo-summary && ./deploy.sh 2>&1 | tail -100"
 
       - name: 헬스 체크
         run: |
