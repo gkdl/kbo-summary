@@ -168,7 +168,7 @@ class GameService(
         }
 
         log.info("요약 신규 생성 (Gemini 호출): gameId={}", gameId)
-        val detail = buildGameDetail(game, gameScoreRepository.findByGameId(gameId), null, null)
+        val detail = buildGameDetail(game, gameScoreRepository.findByGameId(gameId), fetchBoxScore(game), null)
         val summaryText = runBlocking { geminiClient.generateSummary(detail) }
 
         // 호출 실패 시 fallback 문구는 저장하지 않아 다음 요청에서 재시도된다

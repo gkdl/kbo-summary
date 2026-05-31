@@ -81,18 +81,64 @@ class GeminiClient(
 
     private fun buildPrompt(gameData: GameDetailDto): String {
         val game = gameData.game
+        val awayName = TEAM_NAMES[game.awayTeamCode] ?: game.awayTeamCode
+        val homeName = TEAM_NAMES[game.homeTeamCode] ?: game.homeTeamCode
+
         val innings = gameData.inningScores
-            .joinToString(", ") { "${it.inning}회 ${it.awayRuns}:${it.homeRuns}" }
+            .joinToString(" | ") { "${it.inning}회: ${it.awayRuns}-${it.homeRuns}" }
             .ifEmpty { "정보 없음" }
+
+        // 승리/패전/세이브 투수
+        val allPitchers = gameData.awayPitchers + gameData.homePitchers
+        val winPitcher = allPitchers.firstOrNull { it.decision == "승" }
+            ?.let { "${teamName(it.teamCode)} ${it.playerName} (${it.wins}승 ${it.losses}패, ${it.inningsPitched}이닝 ${it.strikeOuts}K)" }
+            ?: "정보 없음"
+        val losePitcher = allPitchers.firstOrNull { it.decision == "패" }
+            ?.let { "${teamName(it.teamCode)} ${it.playerName} (${it.wins}승 ${it.losses}패)" }
+            ?: "정보 없음"
+        val savePitcher = allPitchers.firstOrNull { it.decision == "세" }
+            ?.let { "${teamName(it.teamCode)} ${it.playerName}" }
+            ?: "없음"
+
+        // 다득점 타자 상위 3명
+        val topHitters = (gameData.awayHitters + gameData.homeHitters)
+            .filter { it.hits > 0 || it.rbi > 0 }
+            .sortedByDescending { it.rbi * 2 + it.hits }
+            .take(3)
+            .joinToString(", ") { "${teamName(it.teamCode)} ${it.playerName} ${it.atBats}타수${it.hits}안타 ${it.rbi}타점" }
+            .ifEmpty { "정보 없음" }
+
+        // 홈런 타자
+        val homeRunHitters = (gameData.awayPitchers + gameData.homePitchers)
+            .sumOf { it.homeRuns }
+        // 박스스코어에 개인 홈런 수가 없으므로 피홈런 수로 언급 여부 판단
+        val homeRunNote = if (homeRunHitters > 0) "이 경기에서 총 ${homeRunHitters}개의 홈런이 나왔습니다." else ""
+
         return """
             다음 KBO 경기 데이터를 바탕으로 3~4문장의 경기 요약을 작성해줘.
-            스포츠 기자 말투로, 득점 장면과 승부 포인트 위주로 써줘.
-            경기: ${game.awayTeamCode} ${game.awayScore ?: 0} : ${game.homeScore ?: 0} ${game.homeTeamCode}
-            승리투수: 정보 없음 / 패전투수: 정보 없음
-            홈런: 정보 없음
-            이닝별 흐름: $innings
+            스포츠 기자 말투로, 실제 데이터에 있는 선수명과 팀명만 사용해줘.
+            데이터에 없는 내용은 절대 지어내지 마.
+
+            [경기 결과]
+            원정: $awayName ${game.awayScore ?: 0}점
+            홈: $homeName ${game.homeScore ?: 0}점
+            구장: ${game.stadium ?: ""}
+
+            [이닝별 점수 (원정-홈)]
+            $innings
+
+            [투수]
+            승리: $winPitcher
+            패전: $losePitcher
+            세이브: $savePitcher
+
+            [주요 타자]
+            $topHitters
+            $homeRunNote
         """.trimIndent()
     }
+
+    private fun teamName(code: String) = TEAM_NAMES[code] ?: code
 
     private fun extractSummary(responseJson: String): String {
         val text = objectMapper.readTree(responseJson)
@@ -111,8 +157,21 @@ class GeminiClient(
 
         private const val API_BASE_URL = "https://generativelanguage.googleapis.com"
         private const val MODEL = "gemini-2.5-flash-lite"
-        private const val MAX_OUTPUT_TOKENS = 300
-        private const val TEMPERATURE = 0.7
+        private const val MAX_OUTPUT_TOKENS = 400
+        private const val TEMPERATURE = 0.3  // 낮출수록 사실 기반, 높을수록 창의적
         private const val REQUEST_TIMEOUT_SECONDS = 30L
+
+        val TEAM_NAMES = mapOf(
+            "LG" to "LG 트윈스",
+            "KT" to "KT 위즈",
+            "SK" to "SSG 랜더스",
+            "NC" to "NC 다이노스",
+            "OB" to "두산 베어스",
+            "HT" to "KIA 타이거즈",
+            "LT" to "롯데 자이언츠",
+            "SS" to "삼성 라이온즈",
+            "HH" to "한화 이글스",
+            "WO" to "키움 히어로즈",
+        )
     }
 }
