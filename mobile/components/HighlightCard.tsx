@@ -19,10 +19,9 @@ export function HighlightCard({ highlight }: Props) {
   const videoUrl = `https://www.youtube.com/watch?v=${highlight.youtubeVideoId}`;
 
   const openVideo = async () => {
-    const supported = await Linking.canOpenURL(videoUrl);
-    if (supported) {
+    try {
       await Linking.openURL(videoUrl);
-    } else {
+    } catch {
       Alert.alert("영상을 열 수 없습니다", videoUrl);
     }
   };
