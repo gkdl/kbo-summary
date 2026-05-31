@@ -20,6 +20,9 @@ import com.kbo.summary.crawler.parser.PitcherRecordDto
 import com.kbo.summary.crawler.parser.HighlightDto as CrawlerHighlightDto
 import com.kbo.summary.core.exception.GameNotFoundException
 import com.kbo.summary.core.exception.SummaryException
+import com.kbo.summary.crawler.repository.GameBoxHitterRepository
+import com.kbo.summary.crawler.repository.GameBoxPitcherRepository
+import com.kbo.summary.crawler.repository.GameHighlightRepository
 import com.kbo.summary.crawler.repository.GameRepository
 import com.kbo.summary.crawler.repository.GameScoreRepository
 import com.kbo.summary.crawler.repository.GameSummaryRepository
@@ -61,6 +64,9 @@ class GameService(
     private val gameRepository: GameRepository,
     private val gameScoreRepository: GameScoreRepository,
     private val gameSummaryRepository: GameSummaryRepository,
+    private val gameHighlightRepository: GameHighlightRepository,
+    private val gameBoxHitterRepository: GameBoxHitterRepository,
+    private val gameBoxPitcherRepository: GameBoxPitcherRepository,
     private val gameCrawlerService: GameCrawlerService,
     private val geminiClient: GeminiClient,
 ) {
@@ -93,22 +99,36 @@ class GameService(
             crawlSafely { gameCrawlerService.crawlGameScore(gameId) }
             scores = gameScoreRepository.findByGameId(gameId)
         }
-        // 박스스코어/하이라이트는 영속화 엔티티가 없어 매 요청마다 KBO 호출. 시작 전 경기는 데이터 없음.
-        val boxScore = if (game.status == GameStatus.SCHEDULED) null else fetchBoxScoreSafely(game)
-        // 하이라이트는 종료된 경기만 (보통 종료 후 영상 업로드되기까지 시차 있음)
-        val highlight = if (game.status == GameStatus.FINISHED) fetchHighlightSafely(game.gameId) else null
+        // 박스스코어: DB 우선, 없으면 크롤 후 저장. 시작 전 경기는 데이터 없음.
+        val boxScore = if (game.status == GameStatus.SCHEDULED) null else fetchBoxScore(game)
+        // 하이라이트: DB 우선, 없으면 크롤 후 저장. 종료 경기만.
+        val highlight = if (game.status == GameStatus.FINISHED) fetchHighlight(game.gameId) else null
         return buildGameDetail(game, scores, boxScore, highlight)
     }
 
-    private fun fetchBoxScoreSafely(game: Game): BoxScoreDto? =
-        runCatching {
-            runBlocking {
-                gameCrawlerService.crawlBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
-            }
+    private fun fetchBoxScore(game: Game): BoxScoreDto? {
+        val dbHitters = gameBoxHitterRepository.findByGameId(game.gameId)
+        val dbPitchers = gameBoxPitcherRepository.findByGameId(game.gameId)
+        if (dbHitters.isNotEmpty()) {
+            return BoxScoreDto(
+                gameId = game.gameId,
+                awayHitters = dbHitters.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
+                homeHitters = dbHitters.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
+                awayPitchers = dbPitchers.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
+                homePitchers = dbPitchers.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
+            )
+        }
+        return runCatching {
+            runBlocking { gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode) }
         }.getOrNull()
+    }
 
-    private fun fetchHighlightSafely(gameId: String): CrawlerHighlightDto? =
-        runCatching { runBlocking { gameCrawlerService.crawlHighlight(gameId) } }.getOrNull()
+    private fun fetchHighlight(gameId: String): CrawlerHighlightDto? {
+        gameHighlightRepository.findByGameId(gameId)?.let {
+            return CrawlerHighlightDto(gameId = it.gameId, youtubeVideoId = it.youtubeVideoId, title = it.title)
+        }
+        return runCatching { runBlocking { gameCrawlerService.crawlAndSaveHighlight(gameId) } }.getOrNull()
+    }
 
     /**
      * 해당 날짜의 종료된 경기들의 하이라이트만 모아 반환.
@@ -119,7 +139,7 @@ class GameService(
         return games
             .filter { it.status == "FINISHED" }
             .mapNotNull { game ->
-                val crawlerHighlight = fetchHighlightSafely(game.gameId) ?: return@mapNotNull null
+                val highlight = fetchHighlight(game.gameId) ?: return@mapNotNull null
                 GameHighlightDto(
                     gameId = game.gameId,
                     gameDate = game.gameDate.toString(),
@@ -128,8 +148,8 @@ class GameService(
                     awayScore = game.awayScore,
                     homeScore = game.homeScore,
                     highlight = HighlightDto(
-                        youtubeVideoId = crawlerHighlight.youtubeVideoId,
-                        title = crawlerHighlight.title,
+                        youtubeVideoId = highlight.youtubeVideoId,
+                        title = highlight.title,
                     ),
                 )
             }
@@ -228,3 +248,16 @@ class GameService(
     private fun GameSummary.toDto(): GameSummaryDto =
         GameSummaryDto(gameId = gameId, summary = summary, createdAt = createdAt)
 }
+
+private fun com.kbo.summary.core.domain.GameBoxHitter.toRecordDto() = HitterRecordDto(
+    playerName = playerName, battingOrder = battingOrder, position = position,
+    teamCode = teamCode, atBats = atBats, hits = hits, rbi = rbi, runs = runs, avg = avg,
+)
+
+private fun com.kbo.summary.core.domain.GameBoxPitcher.toRecordDto() = PitcherRecordDto(
+    playerName = playerName, teamCode = teamCode, role = role, decision = decision,
+    wins = wins, losses = losses, saves = saves, inningsPitched = inningsPitched,
+    battersFaced = battersFaced, pitchCount = pitchCount, atBats = atBats,
+    hits = hits, homeRuns = homeRuns, walks = walks, strikeOuts = strikeOuts,
+    runs = runs, earnedRuns = earnedRuns, era = era,
+)

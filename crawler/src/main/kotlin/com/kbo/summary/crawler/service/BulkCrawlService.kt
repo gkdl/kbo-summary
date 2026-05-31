@@ -44,6 +44,20 @@ class BulkCrawlService(
                         log.warn("[벌크크롤] 스코어 수집 실패 ({}): {}", game.gameId, e.message)
                         errorCount++
                     }
+                    runCatching {
+                        gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
+                        delay(CRAWL_DELAY_MS)
+                    }.onFailure { e ->
+                        log.warn("[벌크크롤] 박스스코어 수집 실패 ({}): {}", game.gameId, e.message)
+                        errorCount++
+                    }
+                    runCatching {
+                        gameCrawlerService.crawlAndSaveHighlight(game.gameId)
+                        delay(CRAWL_DELAY_MS)
+                    }.onFailure { e ->
+                        log.warn("[벌크크롤] 하이라이트 수집 실패 ({}): {}", game.gameId, e.message)
+                        errorCount++
+                    }
                 }
             }.onFailure { e ->
                 log.warn("[벌크크롤] 날짜 {} 경기 목록 실패: {}", cursor, e.message)

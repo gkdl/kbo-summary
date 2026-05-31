@@ -1,6 +1,9 @@
 package com.kbo.summary.crawler.service
 
 import com.kbo.summary.core.domain.Game
+import com.kbo.summary.core.domain.GameBoxHitter
+import com.kbo.summary.core.domain.GameBoxPitcher
+import com.kbo.summary.core.domain.GameHighlight
 import com.kbo.summary.core.domain.GameScore
 import com.kbo.summary.crawler.client.KboWebClient
 import com.kbo.summary.crawler.parser.BoxScoreDto
@@ -9,6 +12,9 @@ import com.kbo.summary.crawler.parser.HighlightDto
 import com.kbo.summary.crawler.parser.HighlightParser
 import com.kbo.summary.crawler.parser.ScheduleParser
 import com.kbo.summary.crawler.parser.ScoreParser
+import com.kbo.summary.crawler.repository.GameBoxHitterRepository
+import com.kbo.summary.crawler.repository.GameBoxPitcherRepository
+import com.kbo.summary.crawler.repository.GameHighlightRepository
 import com.kbo.summary.crawler.repository.GameRepository
 import com.kbo.summary.crawler.repository.GameScoreRepository
 import org.slf4j.LoggerFactory
@@ -25,6 +31,9 @@ class GameCrawlerService(
     private val highlightParser: HighlightParser,
     private val gameRepository: GameRepository,
     private val gameScoreRepository: GameScoreRepository,
+    private val gameHighlightRepository: GameHighlightRepository,
+    private val gameBoxHitterRepository: GameBoxHitterRepository,
+    private val gameBoxPitcherRepository: GameBoxPitcherRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -128,6 +137,46 @@ class GameCrawlerService(
             ),
         )
         return highlightParser.parse(json)
+    }
+
+    // 박스스코어를 크롤 후 DB에 저장 (기존 데이터 교체).
+    suspend fun crawlAndSaveBoxScore(gameId: String, awayTeamCode: String, homeTeamCode: String): BoxScoreDto {
+        val dto = crawlBoxScore(gameId, awayTeamCode, homeTeamCode)
+        gameBoxHitterRepository.deleteByGameId(gameId)
+        gameBoxPitcherRepository.deleteByGameId(gameId)
+        val hitters = (dto.awayHitters + dto.homeHitters).map { h ->
+            GameBoxHitter(
+                gameId = gameId, teamCode = h.teamCode, playerName = h.playerName,
+                battingOrder = h.battingOrder, position = h.position,
+                atBats = h.atBats, hits = h.hits, rbi = h.rbi, runs = h.runs, avg = h.avg,
+            )
+        }
+        val pitchers = (dto.awayPitchers + dto.homePitchers).map { p ->
+            GameBoxPitcher(
+                gameId = gameId, teamCode = p.teamCode, playerName = p.playerName,
+                role = p.role, decision = p.decision,
+                wins = p.wins, losses = p.losses, saves = p.saves,
+                inningsPitched = p.inningsPitched, battersFaced = p.battersFaced,
+                pitchCount = p.pitchCount, atBats = p.atBats, hits = p.hits,
+                homeRuns = p.homeRuns, walks = p.walks, strikeOuts = p.strikeOuts,
+                runs = p.runs, earnedRuns = p.earnedRuns, era = p.era,
+            )
+        }
+        gameBoxHitterRepository.saveAll(hitters)
+        gameBoxPitcherRepository.saveAll(pitchers)
+        log.info("박스스코어 저장: gameId={} 타자{}명 투수{}명", gameId, hitters.size, pitchers.size)
+        return dto
+    }
+
+    // 하이라이트를 크롤 후 DB에 저장. 영상 미업로드 시 null 반환.
+    suspend fun crawlAndSaveHighlight(gameId: String): HighlightDto? {
+        val dto = crawlHighlight(gameId) ?: return null
+        val entity = gameHighlightRepository.findByGameId(gameId)
+            ?.apply { youtubeVideoId = dto.youtubeVideoId; title = dto.title }
+            ?: GameHighlight(gameId = gameId, youtubeVideoId = dto.youtubeVideoId, title = dto.title)
+        gameHighlightRepository.save(entity)
+        log.info("하이라이트 저장: gameId={} videoId={}", gameId, dto.youtubeVideoId)
+        return dto
     }
 
     private companion object {
