@@ -62,7 +62,7 @@ function Info({ label, value, color }: { label: string; value: string; color: st
 const styles = StyleSheet.create({
   card: { padding: 16, borderRadius: 8, borderWidth: 1, gap: 12 },
   topRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  badge: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
+  badge: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
   badgeNumber: { color: "#FFFFFF", fontSize: 22, fontWeight: "700" },
   name: { fontSize: 20, fontWeight: "700" },
   subtitle: { fontSize: 13, marginTop: 2 },

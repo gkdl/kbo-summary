@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   teamSide: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
   teamSideRight: { justifyContent: "flex-end" },
-  badge: { width: 10, height: 10, borderRadius: 5 },
+  badge: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" },
   team: { fontSize: 16, fontWeight: "600" },
   score: { fontSize: 24, fontWeight: "700", fontVariant: ["tabular-nums"] },
   status: { fontSize: 11, fontWeight: "600" },

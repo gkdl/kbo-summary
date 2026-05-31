@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   cellRate: { width: 46, textAlign: "center" },
   cellGb: { width: 36, textAlign: "center" },
   cellRecent: { width: 64, alignItems: "center" },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
   teamName: { fontSize: 14 },
   empty: { padding: 24, alignItems: "center", borderRadius: 8, borderWidth: 1 },
 });

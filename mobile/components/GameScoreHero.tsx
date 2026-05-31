@@ -77,6 +77,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   bigBadgeText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
   teamName: { fontSize: 12, opacity: 0.8 },
