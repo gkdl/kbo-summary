@@ -11,8 +11,12 @@ interface Props {
 
 const STATUS_LABEL: Record<string, string> = {
   SCHEDULED: "예정",
-  IN_PROGRESS: "경기중",
+  IN_PROGRESS: "● 경기중",
   FINISHED: "종료",
+};
+
+const STATUS_COLOR: Record<string, string> = {
+  IN_PROGRESS: "#34C759",
 };
 
 export function ScoreCard({ game }: Props) {
@@ -20,9 +24,9 @@ export function ScoreCard({ game }: Props) {
   const router = useRouter();
   const away = getTeam(game.awayTeamCode);
   const home = getTeam(game.homeTeamCode);
-  // 점수는 항상 표시 — 예정/진행 중 경기는 KBO 가 null 또는 0 을 주므로 ?? 0 으로 0:0 fallback.
   const awayScore = game.awayScore ?? 0;
   const homeScore = game.homeScore ?? 0;
+  const statusColor = STATUS_COLOR[game.status] ?? colors.subText;
 
   return (
     <Pressable
@@ -33,9 +37,8 @@ export function ScoreCard({ game }: Props) {
       ]}
     >
       <Text style={[styles.meta, { color: colors.subText }]}>
-        {game.gameDate}
+        {game.stadium ?? ""}
         {game.startTime ? ` · ${game.startTime}` : ""}
-        {game.stadium ? ` · ${game.stadium}` : ""}
       </Text>
 
       <View style={styles.row}>
@@ -56,7 +59,7 @@ export function ScoreCard({ game }: Props) {
         </View>
       </View>
 
-      <Text style={[styles.status, { color: colors.subText }]}>
+      <Text style={[styles.status, { color: statusColor }]}>
         {STATUS_LABEL[game.status] ?? game.status}
       </Text>
     </Pressable>
@@ -64,13 +67,13 @@ export function ScoreCard({ game }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 14, borderRadius: 8, borderWidth: 1, gap: 8 },
+  card: { padding: 14, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, gap: 6 },
   meta: { fontSize: 12 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   teamSide: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
   teamSideRight: { justifyContent: "flex-end" },
   badge: { width: 10, height: 10, borderRadius: 5 },
   team: { fontSize: 16, fontWeight: "600" },
-  score: { fontSize: 22, fontWeight: "700", fontVariant: ["tabular-nums"] },
-  status: { fontSize: 11 },
+  score: { fontSize: 24, fontWeight: "700", fontVariant: ["tabular-nums"] },
+  status: { fontSize: 11, fontWeight: "600" },
 });

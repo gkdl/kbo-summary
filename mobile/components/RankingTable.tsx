@@ -29,15 +29,15 @@ export function RankingTable({ standings, recentForms }: Props) {
   return (
     <View style={[styles.table, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={[styles.row, styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerText, styles.cellRank, { color: colors.text }]}>순위</Text>
-        <Text style={[styles.headerText, styles.cellTeam, { color: colors.text }]}>팀</Text>
-        <Text style={[styles.headerText, styles.cellNum, { color: colors.text }]}>승</Text>
-        <Text style={[styles.headerText, styles.cellNum, { color: colors.text }]}>패</Text>
-        <Text style={[styles.headerText, styles.cellNum, { color: colors.text }]}>무</Text>
-        <Text style={[styles.headerText, styles.cellRate, { color: colors.text }]}>승률</Text>
-        <Text style={[styles.headerText, styles.cellGb, { color: colors.text }]}>GB</Text>
+        <Text style={[styles.headerText, styles.cellRank, { color: colors.subText }]}>순위</Text>
+        <Text style={[styles.headerText, styles.cellTeam, { color: colors.subText }]}>팀</Text>
+        <Text style={[styles.headerText, styles.cellNum, { color: colors.subText }]}>승</Text>
+        <Text style={[styles.headerText, styles.cellNum, { color: colors.subText }]}>패</Text>
+        <Text style={[styles.headerText, styles.cellNum, { color: colors.subText }]}>무</Text>
+        <Text style={[styles.headerText, styles.cellRate, { color: colors.subText }]}>승률</Text>
+        <Text style={[styles.headerText, styles.cellGb, { color: colors.subText }]}>GB</Text>
         {showRecent ? (
-          <Text style={[styles.headerText, styles.cellRecent, { color: colors.text }]}>최근 5</Text>
+          <Text style={[styles.headerText, styles.cellRecent, { color: colors.subText }]}>최근 5</Text>
         ) : null}
       </View>
       {standings.map((row) => {
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   table: { borderRadius: 8, borderWidth: 1, overflow: "hidden" },
   row: { flexDirection: "row", paddingHorizontal: 8, paddingVertical: 10, alignItems: "center" },
   header: { borderBottomWidth: StyleSheet.hairlineWidth },
-  headerText: { fontSize: 12, fontWeight: "600", opacity: 0.7 },
+  headerText: { fontSize: 12, fontWeight: "600" },
   cellText: { fontSize: 13, fontVariant: ["tabular-nums"] },
   cellRank: { width: 32, textAlign: "center" },
   cellTeam: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },

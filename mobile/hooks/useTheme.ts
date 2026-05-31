@@ -44,10 +44,8 @@ const darkColors: ThemeColors = {
 };
 
 export function useTheme(): Theme {
-  const scheme = useColorScheme();
-  const dark = scheme !== "light";
   return {
-    dark,
-    colors: dark ? darkColors : lightColors,
+    dark: true,
+    colors: darkColors,
   };
 }

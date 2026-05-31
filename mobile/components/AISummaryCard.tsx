@@ -16,12 +16,12 @@ export function AISummaryCard({ summary, loading }: Props) {
     <View
       style={[
         styles.card,
-        { backgroundColor: colors.card, borderColor: colors.border },
+        { backgroundColor: colors.card, borderColor: colors.primary },
       ]}
     >
+      <View style={[styles.accent, { backgroundColor: colors.primary }]} />
       <View style={styles.header}>
-        <Text style={styles.icon}>✨</Text>
-        <Text style={[styles.title, { color: colors.text }]}>AI 경기 요약</Text>
+        <Text style={[styles.title, { color: colors.primary }]}>✦ AI 경기 요약</Text>
       </View>
 
       {loading ? (
@@ -47,10 +47,10 @@ export function AISummaryCard({ summary, loading }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 14, borderRadius: 8, borderWidth: 1, gap: 8 },
-  header: { flexDirection: "row", alignItems: "center", gap: 6 },
-  icon: { fontSize: 16 },
-  title: { fontSize: 14, fontWeight: "600" },
+  card: { paddingHorizontal: 14, paddingBottom: 14, paddingTop: 10, borderRadius: 10, borderWidth: 1, gap: 8, overflow: "hidden" },
+  accent: { position: "absolute", top: 0, left: 0, right: 0, height: 3 },
+  header: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+  title: { fontSize: 14, fontWeight: "700" },
   body: { fontSize: 14, lineHeight: 22 },
   timestamp: { fontSize: 11 },
 });
