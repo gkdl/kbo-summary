@@ -55,18 +55,6 @@ data class PlayerStatDto(
     val pitching: PitchingLine?,
 )
 
-data class GameLogEntryDto(
-    val gameDate: String?,
-    val opponent: String?,
-    val record: String,
-)
-
-data class PlayerGameLogDto(
-    val playerId: String,
-    val playerType: String,
-    val recentGames: List<GameLogEntryDto>,
-)
-
 data class PlayerSearchResultDto(
     val playerId: String,
     val name: String,

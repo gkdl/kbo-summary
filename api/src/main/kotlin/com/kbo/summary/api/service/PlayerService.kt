@@ -6,7 +6,6 @@ import com.kbo.summary.core.domain.Player
 import com.kbo.summary.core.domain.PlayerType
 import com.kbo.summary.core.dto.HittingLine
 import com.kbo.summary.core.dto.PitchingLine
-import com.kbo.summary.core.dto.PlayerGameLogDto
 import com.kbo.summary.core.dto.PlayerProfileDto
 import com.kbo.summary.core.dto.PlayerRankingDto
 import com.kbo.summary.core.dto.PlayerSearchResultDto
@@ -61,17 +60,6 @@ class PlayerService(
                 pitching = null,
             )
         }
-    }
-
-    // 경기별 기록 영속화 테이블이 없어 현재는 빈 목록을 반환한다. (별도 game-log 엔티티 도입 필요)
-    fun getPlayerGameLog(playerId: String): PlayerGameLogDto {
-        val player = playerRepository.findByIdOrNull(playerId)
-            ?: throw PlayerNotFoundException(playerId)
-        return PlayerGameLogDto(
-            playerId = playerId,
-            playerType = player.playerType.name,
-            recentGames = emptyList(),
-        )
     }
 
     fun searchPlayers(keyword: String): List<PlayerSearchResultDto> {

@@ -50,18 +50,6 @@ export interface PlayerStat {
   pitching: PitchingLine | null;
 }
 
-export interface GameLogEntry {
-  gameDate: string | null;
-  opponent: string | null;
-  record: string;
-}
-
-export interface PlayerGameLog {
-  playerId: string;
-  playerType: string;
-  recentGames: GameLogEntry[];
-}
-
 export interface PlayerSearchResult {
   playerId: string;
   name: string;
