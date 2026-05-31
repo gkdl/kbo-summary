@@ -3,6 +3,8 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, V
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 
+import { AdBanner } from "../../components/AdBanner";
+
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
 import { PlayerCard } from "../../components/PlayerCard";
@@ -109,7 +111,7 @@ export default function PlayersScreen() {
             ))}
           </ScrollView>
 
-          <View style={styles.listWrap}>
+          <ScrollView contentContainerStyle={styles.listWrap}>
             {rankingsQuery.isLoading ? (
               <View style={styles.center}>
                 <ActivityIndicator color={colors.primary} />
@@ -119,7 +121,8 @@ export default function PlayersScreen() {
             ) : (
               <PlayerRankingList rankings={rankingsQuery.data ?? []} />
             )}
-          </View>
+            <AdBanner />
+          </ScrollView>
         </View>
       )}
     </SafeAreaView>
@@ -145,6 +148,6 @@ const styles = StyleSheet.create({
   categoryRow: { paddingHorizontal: 12, paddingVertical: 4, gap: 8, alignItems: "center" },
   categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1 },
   categoryText: { fontSize: 13, fontWeight: "600" },
-  listWrap: { flex: 1, padding: 12 },
+  listWrap: { padding: 12 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
