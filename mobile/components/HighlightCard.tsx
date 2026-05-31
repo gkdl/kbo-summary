@@ -36,11 +36,6 @@ export function HighlightCard({ highlight }: Props) {
     >
       <View style={styles.thumbWrap}>
         <Image source={{ uri: thumbUrl }} style={styles.thumb} resizeMode="cover" />
-        <View style={styles.playOverlay}>
-          <View style={styles.playButton}>
-            <Text style={styles.playIcon}>▶</Text>
-          </View>
-        </View>
       </View>
       <View style={styles.captionRow}>
         <Text style={[styles.label, { color: colors.text }]}>경기 하이라이트</Text>
@@ -58,20 +53,6 @@ const styles = StyleSheet.create({
   card: { borderRadius: 10, borderWidth: 1, overflow: "hidden" },
   thumbWrap: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000000" },
   thumb: { width: "100%", height: "100%" },
-  playOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  playButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  playIcon: { color: "#FFFFFF", fontSize: 22, marginLeft: 4 },
   captionRow: { paddingHorizontal: 12, paddingVertical: 10, gap: 2 },
   label: { fontSize: 14, fontWeight: "700" },
   subtitle: { fontSize: 12 },
