@@ -21,7 +21,7 @@ const realUnitId = Platform.OS === "ios" ? IOS_BANNER_UNIT_ID : ANDROID_BANNER_U
 const unitId = __DEV__ ? TestIds.BANNER : realUnitId;
 
 export function AdBanner() {
-  return (
+  return (  
     <View style={styles.wrapper}>
       <BannerAd
         unitId={unitId}
