@@ -2,6 +2,8 @@ package com.kbo.summary.crawler.scheduler
 
 import com.kbo.summary.core.domain.GameStatus
 import com.kbo.summary.crawler.parser.KBO_TEAM_CODES
+import com.kbo.summary.crawler.repository.GameBoxHitterRepository
+import com.kbo.summary.crawler.repository.GameHighlightRepository
 import com.kbo.summary.crawler.service.GameCrawlerService
 import com.kbo.summary.crawler.service.PlayerCrawlerService
 import com.kbo.summary.crawler.service.TeamCrawlerService
@@ -22,6 +24,8 @@ class KboCrawlerScheduler(
     private val gameCrawlerService: GameCrawlerService,
     private val teamCrawlerService: TeamCrawlerService,
     private val playerCrawlerService: PlayerCrawlerService,
+    private val gameHighlightRepository: GameHighlightRepository,
+    private val gameBoxHitterRepository: GameBoxHitterRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -47,6 +51,32 @@ class KboCrawlerScheduler(
                         }
                     }
             }
+        }
+    }
+
+    // 종료 경기 박스스코어·하이라이트 저장 — 5분 주기, 17:00~다음날 02:00
+    // 경기 종료 후 KBO가 데이터를 publish하는 데 시차가 있어 넉넉하게 새벽 2시까지 동작
+    @Scheduled(fixedDelay = 300_000)
+    fun saveFinishedGameDetails() = runScheduled("종료 경기 박스스코어·하이라이트 저장") {
+        val hour = LocalTime.now().hour
+        val isActive = hour >= BOXSCORE_START_HOUR || hour < BOXSCORE_END_HOUR
+        if (!isActive) return@runScheduled
+        runBlocking {
+            gameCrawlerService.crawlTodayGames()
+                .filter { it.status == GameStatus.FINISHED }
+                .forEach { game ->
+                    // 이미 저장된 경기는 skip
+                    if (gameBoxHitterRepository.findByGameId(game.gameId).isNotEmpty()) return@forEach
+                    runCatching {
+                        gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
+                    }.onFailure { log.warn("박스스코어 저장 실패 ({}): {}", game.gameId, it.message) }
+
+                    if (gameHighlightRepository.findByGameId(game.gameId) == null) {
+                        runCatching {
+                            gameCrawlerService.crawlAndSaveHighlight(game.gameId)
+                        }.onFailure { log.warn("하이라이트 저장 실패 ({}): {}", game.gameId, it.message) }
+                    }
+                }
         }
     }
 
@@ -99,5 +129,7 @@ class KboCrawlerScheduler(
     private companion object {
         const val ACTIVE_START_HOUR = 14
         const val ACTIVE_END_HOUR = 23
+        const val BOXSCORE_START_HOUR = 17  // 박스스코어·하이라이트는 17:00~
+        const val BOXSCORE_END_HOUR = 2     // ~02:00
     }
 }
