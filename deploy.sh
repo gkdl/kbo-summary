@@ -4,8 +4,8 @@ set -e
 cd ~/kbo-summary
 
 echo "=== git pull ==="
-git pull origin main
-chmod +x deploy.sh
+git fetch origin main
+git reset --hard origin/main
 
 echo "=== Docker 이미지 빌드 ==="
 docker build -t kbo-api .
