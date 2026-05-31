@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StatusBar, StyleSheet } from "react-native";
 
 import { DebugOverlay } from "../components/DebugOverlay";
 import { useTheme } from "../hooks/useTheme";
@@ -58,8 +58,11 @@ export default function RootLayout() {
 function ThemedStack() {
   const { colors } = useTheme();
   return (
-    <Stack
+    <>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <Stack
       screenOptions={{
+        contentStyle: { backgroundColor: colors.background },
         headerStyle: {
           backgroundColor: colors.background,
           elevation: 0,
@@ -67,7 +70,7 @@ function ThemedStack() {
           borderBottomWidth: StyleSheet.hairlineWidth,
           borderBottomColor: colors.border,
         },
-        headerTitleStyle: { fontSize: 17, fontWeight: "700" },
+        headerTitleStyle: { fontSize: 17, fontWeight: "700", color: colors.text },
         headerTitleAlign: "center",
         headerTintColor: colors.text,
         // iOS 의 "Back" 텍스트 숨김 (Android 에는 영향 없음)
@@ -80,5 +83,6 @@ function ThemedStack() {
       <Stack.Screen name="team/[teamCode]" options={{ title: "팀 상세" }} />
       <Stack.Screen name="player/[playerId]" options={{ title: "선수 상세" }} />
     </Stack>
+    </>
   );
 }

@@ -23,8 +23,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      // 광고를 탭바 바로 위에 고정 — 스크롤과 무관하게 항상 노출.
-      // BottomTabBar 는 expo-router 내부에서도 쓰는 컴포넌트로, 기본 탭바를 그대로 렌더링.
+      sceneContainerStyle={{ backgroundColor: colors.background }}
       tabBar={(props) => (
         <View style={{ backgroundColor: colors.card }}>
           <AdBanner />
