@@ -6,12 +6,10 @@ import { useTheme } from "../../hooks/useTheme";
 import { apiClient } from "../../api/client";
 import { AdBanner } from "../../components/AdBanner";
 import { ErrorState } from "../../components/ErrorState";
-import { PlayerGameLogTable } from "../../components/PlayerGameLogTable";
 import { PlayerProfileHeader } from "../../components/PlayerProfileHeader";
 import { PlayerStatTable } from "../../components/PlayerStatTable";
 import { getTeam } from "../../constants/teams";
 import { usePlayer } from "../../hooks/usePlayer";
-import { usePlayerGameLog } from "../../hooks/usePlayerGameLog";
 import type { ApiResponse } from "../../types/game";
 import type { PlayerStat } from "../../types/player";
 
@@ -22,7 +20,6 @@ export default function PlayerDetailScreen() {
   const id = playerId ?? "";
 
   const profileQuery = usePlayer(id);
-  const gameLogQuery = usePlayerGameLog(id);
 
   // STEP 11에 usePlayerStats 훅이 없어 인라인 조회
   const statQuery = useQuery({
@@ -77,24 +74,7 @@ export default function PlayerDetailScreen() {
         )}
       </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>최근 10경기</Text>
-        {gameLogQuery.isLoading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : gameLogQuery.data ? (
-          <PlayerGameLogTable gameLog={gameLogQuery.data} />
-        ) : (
-          <Text style={{ color: colors.subText }}>경기 기록이 없습니다</Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>통산 기록</Text>
-        <Text style={{ color: colors.subText }}>
-          통산 기록은 API에 노출 후 표시됩니다
-        </Text>
-      </View>
-      </ScrollView>
+</ScrollView>
       {/* 화면 하단에 항상 고정 */}
       <AdBanner />
     </View>

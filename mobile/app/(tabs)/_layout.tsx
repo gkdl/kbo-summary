@@ -34,24 +34,15 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.subText,
-        tabBarShowLabel: true,
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
-          height: Platform.OS === "ios" ? 88 : 68,
-          paddingBottom: Platform.OS === "ios" ? 28 : 10,
-          paddingTop: 8,
-        },
-        // lineHeight 없이는 한글 라벨의 위/아래가 잘릴 수 있어 명시
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-          lineHeight: 16,
-          marginTop: 3,
-          includeFontPadding: false,
+          height: Platform.OS === "ios" ? 72 : 56,
+          paddingBottom: Platform.OS === "ios" ? 20 : 0,
         },
         tabBarIcon: ({ color, focused }) => {
           const Icon = ICON_BY_ROUTE[route.name] ?? HomeIcon;
