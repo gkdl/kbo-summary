@@ -43,6 +43,11 @@ export default function TabsLayout() {
           shadowOpacity: 0,
           height: Platform.OS === "ios" ? 72 : 56,
           paddingBottom: Platform.OS === "ios" ? 20 : 0,
+          paddingTop: 0,
+        },
+        tabBarItemStyle: {
+          justifyContent: "center",
+          alignItems: "center",
         },
         tabBarIcon: ({ color, focused }) => {
           const Icon = ICON_BY_ROUTE[route.name] ?? HomeIcon;
