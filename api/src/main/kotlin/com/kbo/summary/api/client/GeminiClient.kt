@@ -91,10 +91,10 @@ class GeminiClient(
         // 승리/패전/세이브 투수
         val allPitchers = gameData.awayPitchers + gameData.homePitchers
         val winPitcher = allPitchers.firstOrNull { it.decision == "승" }
-            ?.let { "${teamName(it.teamCode)} ${it.playerName} (${it.wins}승 ${it.losses}패, ${it.inningsPitched}이닝 ${it.strikeOuts}K)" }
+            ?.let { "${teamName(it.teamCode)} ${it.playerName} (${it.inningsPitched}이닝 ${it.strikeOuts}K)" }
             ?: "정보 없음"
         val losePitcher = allPitchers.firstOrNull { it.decision == "패" }
-            ?.let { "${teamName(it.teamCode)} ${it.playerName} (${it.wins}승 ${it.losses}패)" }
+            ?.let { "${teamName(it.teamCode)} ${it.playerName}" }
             ?: "정보 없음"
         val savePitcher = allPitchers.firstOrNull { it.decision == "세" }
             ?.let { "${teamName(it.teamCode)} ${it.playerName}" }
