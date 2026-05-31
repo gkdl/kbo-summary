@@ -76,14 +76,23 @@ jobs:
           "
 
       - name: 헬스 체크
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          for i in 1 2 3 4 5 6; do
-            sleep 10
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 104.198.2.246 >> ~/.ssh/known_hosts
+
+          for i in $(seq 1 12); do
+            sleep 15
             if curl -fsS http://104.198.2.246:8080/actuator/health | grep -q '"status":"UP"'; then
               echo "✓ Health check OK (시도 $i)"
               exit 0
             fi
-            echo "헬스 체크 대기 중... ($i/6)"
+            echo "헬스 체크 대기 중... ($i/12)"
           done
-          echo "헬스 체크 실패"
+
+          echo "=== 헬스 체크 실패 — 컨테이너 로그 ==="
+          ssh -i ~/.ssh/id_ed25519 lim@104.198.2.246 "docker logs --tail 100 kbo-api"
           exit 1
