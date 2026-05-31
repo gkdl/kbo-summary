@@ -14,7 +14,7 @@ data class GameDto(
     val status: String,
     val stadium: String?,
     val startTime: String?,
-)
+)  
 
 data class InningScoreDto(
     val inning: Int,
