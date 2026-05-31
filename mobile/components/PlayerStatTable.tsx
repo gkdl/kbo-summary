@@ -18,7 +18,7 @@ export function PlayerStatTable({ stat }: Props) {
   }
   return (
     <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <Text style={{ color: colors.text, opacity: 0.6 }}>시즌 기록이 없습니다</Text>
+      <Text style={{ color: colors.subText }}>시즌 기록이 없습니다</Text>
     </View>
   );
 }
@@ -74,7 +74,7 @@ function StatGrid({ colors, rows }: GridProps) {
             },
           ]}
         >
-          <Text style={[styles.label, { color: colors.text, opacity: 0.7 }]}>{label}</Text>
+          <Text style={[styles.label, { color: colors.subText }]}>{label}</Text>
           <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
         </View>
       ))}

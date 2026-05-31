@@ -32,7 +32,7 @@ export function TeamStatTable({ stats }: Props) {
             },
           ]}
         >
-          <Text style={[styles.label, { color: colors.text, opacity: 0.7 }]}>{label}</Text>
+          <Text style={[styles.label, { color: colors.subText }]}>{label}</Text>
           <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
         </View>
       ))}

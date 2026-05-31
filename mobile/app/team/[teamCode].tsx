@@ -103,7 +103,7 @@ export default function TeamDetailScreen() {
               <HeadToHeadCard data={headToHeadQuery.data} />
             ) : null
           ) : (
-            <Text style={{ color: colors.text, opacity: 0.6 }}>
+            <Text style={{ color: colors.subText }}>
               상대팀을 선택하면 시즌 상대전적이 표시됩니다
             </Text>
           )}

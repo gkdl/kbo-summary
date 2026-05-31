@@ -15,7 +15,7 @@ export function HeadToHeadCard({ data }: Props) {
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <Text style={[styles.title, { color: colors.text, opacity: 0.7 }]}>시즌 상대전적</Text>
+      <Text style={[styles.title, { color: colors.subText }]}>시즌 상대전적</Text>
       <View style={styles.row}>
         <View style={styles.side}>
           <View style={[styles.badge, { backgroundColor: a?.color ?? colors.primary }]} />
@@ -25,7 +25,7 @@ export function HeadToHeadCard({ data }: Props) {
         </View>
         <Text style={[styles.score, { color: colors.text }]}>
           {data.teamAWins}
-          <Text style={[styles.divider, { color: colors.text, opacity: 0.5 }]}> : </Text>
+          <Text style={[styles.divider, { color: colors.subText }]}> : </Text>
           {data.teamBWins}
         </Text>
         <View style={[styles.side, styles.sideRight]}>
@@ -35,7 +35,7 @@ export function HeadToHeadCard({ data }: Props) {
           <View style={[styles.badge, { backgroundColor: b?.color ?? colors.primary }]} />
         </View>
       </View>
-      <Text style={[styles.footer, { color: colors.text, opacity: 0.6 }]}>
+      <Text style={[styles.footer, { color: colors.subText }]}>
         무승부 {data.draws} · 총 {data.games.length}경기
       </Text>
     </View>

@@ -32,7 +32,7 @@ export function ScoreCard({ game }: Props) {
         { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      <Text style={[styles.meta, { color: colors.text, opacity: 0.6 }]}>
+      <Text style={[styles.meta, { color: colors.subText }]}>
         {game.gameDate}
         {game.startTime ? ` · ${game.startTime}` : ""}
         {game.stadium ? ` · ${game.stadium}` : ""}
@@ -56,7 +56,7 @@ export function ScoreCard({ game }: Props) {
         </View>
       </View>
 
-      <Text style={[styles.status, { color: colors.text, opacity: 0.5 }]}>
+      <Text style={[styles.status, { color: colors.subText }]}>
         {STATUS_LABEL[game.status] ?? game.status}
       </Text>
     </Pressable>

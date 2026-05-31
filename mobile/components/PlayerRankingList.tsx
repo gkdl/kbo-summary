@@ -16,7 +16,7 @@ export function PlayerRankingList({ rankings }: Props) {
   if (rankings.length === 0) {
     return (
       <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={{ color: colors.text, opacity: 0.6 }}>순위 데이터가 없습니다</Text>
+        <Text style={{ color: colors.subText }}>순위 데이터가 없습니다</Text>
       </View>
     );
   }
@@ -44,7 +44,7 @@ export function PlayerRankingList({ rankings }: Props) {
               <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
                 {row.playerName}
               </Text>
-              <Text style={[styles.team, { color: colors.text, opacity: 0.6 }]}>
+              <Text style={[styles.team, { color: colors.subText }]}>
                 {team?.shortName ?? row.teamCode ?? ""}
               </Text>
             </View>

@@ -21,7 +21,7 @@ export function PlayerProfileHeader({ profile }: Props) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.name, { color: colors.text }]}>{profile.name}</Text>
-          <Text style={[styles.subtitle, { color: colors.text, opacity: 0.7 }]}>
+          <Text style={[styles.subtitle, { color: colors.subText }]}>
             {team?.name ?? profile.teamCode ?? ""}
             {profile.position ? ` · ${profile.position}` : ""}
             {profile.playerType ? ` · ${profile.playerType === "PITCHER" ? "투수" : "타자"}` : ""}

@@ -33,7 +33,7 @@ export default function TabsLayout() {
       )}
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text + "99",
+        tabBarInactiveTintColor: colors.subText,
         tabBarShowLabel: true,
         tabBarStyle: {
           backgroundColor: colors.card,

@@ -11,7 +11,7 @@ export function EmptyState({ message, icon = "📭" }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={[styles.message, { color: colors.text, opacity: 0.6 }]}>{message}</Text>
+      <Text style={[styles.message, { color: colors.subText }]}>{message}</Text>
     </View>
   );
 }

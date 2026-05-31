@@ -107,7 +107,7 @@ export default function GameDetailScreen() {
           <Text style={[styles.noticeTitle, { color: colors.text }]}>
             {detail.game.status === "IN_PROGRESS" ? "경기 진행 중" : "경기 예정"}
           </Text>
-          <Text style={[styles.noticeBody, { color: colors.text, opacity: 0.7 }]}>
+          <Text style={[styles.noticeBody, { color: colors.subText }]}>
             이닝별 점수와 박스스코어, AI 요약은 경기 종료 후 표시됩니다.
           </Text>
         </View>

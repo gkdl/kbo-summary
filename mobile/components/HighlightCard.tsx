@@ -46,7 +46,7 @@ export function HighlightCard({ highlight }: Props) {
       <View style={styles.captionRow}>
         <Text style={[styles.label, { color: colors.text }]}>경기 하이라이트</Text>
         {highlight.title ? (
-          <Text style={[styles.subtitle, { color: colors.text, opacity: 0.6 }]} numberOfLines={1}>
+          <Text style={[styles.subtitle, { color: colors.subText }]} numberOfLines={1}>
             {highlight.title}
           </Text>
         ) : null}

@@ -24,7 +24,7 @@ export function GameScoreHero({ game }: Props) {
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <Text style={[styles.meta, { color: colors.text, opacity: 0.6 }]}>
+      <Text style={[styles.meta, { color: colors.subText }]}>
         {game.gameDate}
         {game.startTime ? ` · ${game.startTime}` : ""}
         {game.stadium ? ` · ${game.stadium}` : ""}
@@ -43,7 +43,7 @@ export function GameScoreHero({ game }: Props) {
         <View style={styles.scoreBlock}>
           <Text style={[styles.score, { color: colors.text }]}>
             <Text>{awayScore}</Text>
-            <Text style={[styles.colon, { color: colors.text, opacity: 0.4 }]}> : </Text>
+            <Text style={[styles.colon, { color: colors.subText }]}> : </Text>
             <Text>{homeScore}</Text>
           </Text>
         </View>
@@ -58,7 +58,7 @@ export function GameScoreHero({ game }: Props) {
         </View>
       </View>
 
-      <Text style={[styles.status, { color: colors.text, opacity: 0.55 }]}>
+      <Text style={[styles.status, { color: colors.subText }]}>
         {STATUS_LABEL[game.status] ?? game.status}
       </Text>
     </View>

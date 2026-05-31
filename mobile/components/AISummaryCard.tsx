@@ -33,12 +33,12 @@ export function AISummaryCard({ summary, loading }: Props) {
       ) : summary ? (
         <>
           <Text style={[styles.body, { color: colors.text }]}>{summary.summary}</Text>
-          <Text style={[styles.timestamp, { color: colors.text, opacity: 0.5 }]}>
+          <Text style={[styles.timestamp, { color: colors.subText }]}>
             생성: {summary.createdAt.replace("T", " ").slice(0, 16)}
           </Text>
         </>
       ) : (
-        <Text style={[styles.body, { color: colors.text, opacity: 0.6 }]}>
+        <Text style={[styles.body, { color: colors.subText }]}>
           요약을 불러올 수 없습니다
         </Text>
       )}

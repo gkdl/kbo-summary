@@ -15,7 +15,7 @@ export function PlayerGameLogTable({ gameLog }: Props) {
   if (gameLog.recentGames.length === 0) {
     return (
       <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={{ color: colors.text, opacity: 0.6 }}>최근 경기 기록이 없습니다</Text>
+        <Text style={{ color: colors.subText }}>최근 경기 기록이 없습니다</Text>
       </View>
     );
   }

@@ -12,6 +12,7 @@ export interface ThemeColors {
   background: string;
   card: string;
   text: string;
+  subText: string;
   border: string;
   notification: string;
 }
@@ -21,28 +22,30 @@ export interface Theme {
   colors: ThemeColors;
 }
 
-// react-navigation 의 DefaultTheme / DarkTheme 색상을 그대로 옮겼다 (시각적 변화 없음)
 const lightColors: ThemeColors = {
-  primary: "rgb(0, 122, 255)",
-  background: "rgb(242, 242, 242)",
-  card: "rgb(255, 255, 255)",
-  text: "rgb(28, 28, 30)",
-  border: "rgb(216, 216, 216)",
-  notification: "rgb(255, 59, 48)",
+  primary: "#3380FF",
+  background: "#F2F2F7",
+  card: "#FFFFFF",
+  text: "#1C1C1E",
+  subText: "#6C6C70",
+  border: "#D8D8DC",
+  notification: "#FF3B30",
 };
 
+// 피그마 디자인 기준 다크 테마
 const darkColors: ThemeColors = {
-  primary: "rgb(10, 132, 255)",
-  background: "rgb(0, 0, 0)",
-  card: "rgb(18, 18, 18)",
-  text: "rgb(229, 229, 231)",
-  border: "rgb(39, 39, 41)",
-  notification: "rgb(255, 69, 58)",
+  primary: "#3380FF",
+  background: "#121217",
+  card: "#1E1E29",
+  text: "#FFFFFF",
+  subText: "#9999A6",
+  border: "#383847",
+  notification: "#FF453A",
 };
 
 export function useTheme(): Theme {
   const scheme = useColorScheme();
-  const dark = scheme === "dark";
+  const dark = scheme !== "light";
   return {
     dark,
     colors: dark ? darkColors : lightColors,

@@ -233,7 +233,7 @@ function Row({ colors, cells, header }: RowProps) {
 function EmptyRow({ colors, text }: { colors: { text: string; border: string }; text: string }) {
   return (
     <View style={[styles.row, { borderColor: colors.border, justifyContent: "center" }]}>
-      <Text style={{ color: colors.text, opacity: 0.5, fontSize: 12, paddingVertical: 6 }}>{text}</Text>
+      <Text style={{ color: colors.subText, fontSize: 12, paddingVertical: 6 }}>{text}</Text>
     </View>
   );
 }

@@ -29,7 +29,7 @@ export default function OnboardingScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text }]}>응원하는 팀을 선택하세요</Text>
-        <Text style={[styles.subtitle, { color: colors.text, opacity: 0.6 }]}>
+        <Text style={[styles.subtitle, { color: colors.subText }]}>
           홈 화면에서 마이팀 경기를 우선 표시합니다
         </Text>
         <View style={{ marginTop: 24 }}>
@@ -46,7 +46,7 @@ export default function OnboardingScreen() {
             { borderColor: colors.border, opacity: pressed ? 0.6 : 1 },
           ]}
         >
-          <Text style={[styles.buttonText, { color: colors.text, opacity: 0.7 }]}>건너뛰기</Text>
+          <Text style={[styles.buttonText, { color: colors.subText }]}>건너뛰기</Text>
         </Pressable>
         <Pressable
           disabled={selected === null}

@@ -73,7 +73,7 @@ export default function PlayerDetailScreen() {
         ) : statQuery.data ? (
           <PlayerStatTable stat={statQuery.data} />
         ) : (
-          <Text style={{ color: colors.text, opacity: 0.6 }}>시즌 기록을 불러올 수 없습니다</Text>
+          <Text style={{ color: colors.subText }}>시즌 기록을 불러올 수 없습니다</Text>
         )}
       </View>
 
@@ -84,13 +84,13 @@ export default function PlayerDetailScreen() {
         ) : gameLogQuery.data ? (
           <PlayerGameLogTable gameLog={gameLogQuery.data} />
         ) : (
-          <Text style={{ color: colors.text, opacity: 0.6 }}>경기 기록이 없습니다</Text>
+          <Text style={{ color: colors.subText }}>경기 기록이 없습니다</Text>
         )}
       </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>통산 기록</Text>
-        <Text style={{ color: colors.text, opacity: 0.6 }}>
+        <Text style={{ color: colors.subText }}>
           통산 기록은 API에 노출 후 표시됩니다
         </Text>
       </View>

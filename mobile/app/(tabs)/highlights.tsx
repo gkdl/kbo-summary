@@ -171,7 +171,7 @@ function HighlightRow({ data }: RowProps) {
         </View>
         {data.highlight.title ? (
           <Text
-            style={[styles.title, { color: colors.text, opacity: 0.6 }]}
+            style={[styles.title, { color: colors.subText }]}
             numberOfLines={2}
           >
             {data.highlight.title}

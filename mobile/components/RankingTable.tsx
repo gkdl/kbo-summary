@@ -21,7 +21,7 @@ export function RankingTable({ standings, recentForms }: Props) {
   if (standings.length === 0) {
     return (
       <View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={{ color: colors.text, opacity: 0.6 }}>순위 데이터가 없습니다</Text>
+        <Text style={{ color: colors.subText }}>순위 데이터가 없습니다</Text>
       </View>
     );
   }
