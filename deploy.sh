@@ -5,6 +5,7 @@ cd ~/kbo-summary
 
 echo "=== git pull ==="
 git pull origin main
+chmod +x deploy.sh
 
 echo "=== Docker 이미지 빌드 ==="
 docker build -t kbo-api .
