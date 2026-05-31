@@ -37,10 +37,9 @@ jobs:
 
       - name: VM 에서 deploy.sh 실행
         run: |
-          gcloud compute ssh instance-20260527-113725 \
+          gcloud compute ssh lim@instance-20260527-113725 \
             --zone=us-west1-a \
             --tunnel-through-iap \
-            --ssh-flag="-l lim" \
             --command="bash -lc 'cd /home/lim/kbo-summary && ./deploy.sh 2>&1 | tail -100'"
 
       - name: 헬스 체크
