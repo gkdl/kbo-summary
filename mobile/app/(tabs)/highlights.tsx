@@ -50,7 +50,7 @@ function displayDate(yyyymmdd: string): string {
 export default function HighlightsScreen() {
   const { colors } = useTheme();
   // 하이라이트는 보통 경기 종료 후 publish 되므로 기본값은 어제
-  const [selectedDate, setSelectedDate] = useState(toYyyymmdd(new Date(Date.now() - 86400_000)));
+  const [selectedDate, setSelectedDate] = useState(() => toYyyymmdd(new Date(Date.now() - 86400_000)));
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const query = useHighlightsByDate(selectedDate);
