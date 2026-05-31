@@ -25,6 +25,13 @@
         "EXPO_PUBLIC_API_BASE_URL": "http://104.198.2.246:8080"
       }
     },
+    "production-apk": {
+      "autoIncrement": true,
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://104.198.2.246:8080"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "env": {
