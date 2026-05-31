@@ -42,16 +42,21 @@ export default function TabsLayout() {
           elevation: 0,
           shadowOpacity: 0,
           height: Platform.OS === "ios" ? 72 : 56,
-          paddingBottom: Platform.OS === "ios" ? 20 : 0,
-          paddingTop: 0,
         },
         tabBarItemStyle: {
+          flex: 1,
           justifyContent: "center",
           alignItems: "center",
+          paddingVertical: 0,
+          marginVertical: 0,
         },
         tabBarIcon: ({ color, focused }) => {
           const Icon = ICON_BY_ROUTE[route.name] ?? HomeIcon;
-          return <Icon color={color} focused={focused} size={22} />;
+          return (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <Icon color={color} focused={focused} size={22} />
+            </View>
+          );
         },
         headerStyle: {
           backgroundColor: colors.background,
