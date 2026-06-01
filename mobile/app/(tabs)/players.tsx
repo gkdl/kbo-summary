@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   toggleText: { fontSize: 14, fontWeight: "600" },
   // horizontal ScrollView 가 column 부모 안에서 세로로 stretch 되지 않도록 flexGrow: 0
   categoryScroll: { flexGrow: 0 },
-  categoryRow: { paddingHorizontal: 12, paddingVertical: 8, gap: 8, alignItems: "center" },
+  categoryRow: { paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 18, borderWidth: 1 },
   categoryText: { fontSize: 13, fontWeight: "600" },
   listWrap: { padding: 12 },
