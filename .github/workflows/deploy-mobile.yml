@@ -33,4 +33,4 @@ jobs:
         working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile production --non-interactive
+        run: eas build --platform android --profile store --non-interactive
