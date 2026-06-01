@@ -147,10 +147,10 @@ const styles = StyleSheet.create({
   toggleButton: { flex: 1, paddingVertical: 10, alignItems: "center" },
   toggleText: { fontSize: 14, fontWeight: "600" },
   // horizontal ScrollView 가 column 부모 안에서 세로로 stretch 되지 않도록 flexGrow: 0
-  categoryScroll: { flexGrow: 0 },
-  categoryRow: { paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
+  categoryScroll: { flexShrink: 0 },
+  categoryRow: { paddingHorizontal: 12, paddingVertical: 8, gap: 8, alignItems: "center" },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 18, borderWidth: 1 },
-  categoryText: { fontSize: 13, fontWeight: "600" },
+  categoryText: { fontSize: 13, fontWeight: "600", lineHeight: 18 },
   listWrap: { padding: 12 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
