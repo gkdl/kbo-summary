@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "KBO Summary",
+    "name": "KBO 경기요약",
     "slug": "kbo-summary-mobile",
     "scheme": "kbosummary",
     "version": "1.0.0",
