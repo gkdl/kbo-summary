@@ -37,10 +37,10 @@ export function InningTable({ awayTeamCode, homeTeamCode, innings, awayLine, hom
               {inning.inning}
             </Cell>
           ))}
-          <Cell color={colors.text} bold style={styles.totalCell}>R</Cell>
-          <Cell color={colors.text} bold style={styles.totalCell}>H</Cell>
-          <Cell color={colors.text} bold style={styles.totalCell}>E</Cell>
-          <Cell color={colors.text} bold style={styles.totalCell}>B</Cell>
+          <Cell color={colors.text} bold style={styles.totalCell}>득점</Cell>
+          <Cell color={colors.text} bold style={styles.totalCell}>안타</Cell>
+          <Cell color={colors.text} bold style={styles.totalCell}>실책</Cell>
+          <Cell color={colors.text} bold style={styles.totalCell}>볼넷</Cell>
         </View>
 
         <View style={[styles.row, { borderBottomColor: colors.border }]}>

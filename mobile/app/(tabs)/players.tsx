@@ -11,8 +11,13 @@ import { SearchBar } from "../../components/SearchBar";
 import { usePlayerRankings } from "../../hooks/usePlayerRankings";
 import { usePlayerSearch } from "../../hooks/usePlayerSearch";
 
-const HITTER_CATEGORIES = ["AVG", "HR", "RBI", "H"];
-const PITCHER_CATEGORIES = ["ERA", "SO", "W", "SV"];
+const HITTER_CATEGORIES = ["타율", "홈런", "타점", "안타"];
+const PITCHER_CATEGORIES = ["ERA", "삼진", "승", "세이브"];
+
+const CATEGORY_API_KEY: Record<string, string> = {
+  "타율": "avg", "홈런": "hr", "타점": "rbi", "안타": "hits",
+  "ERA": "era", "삼진": "so", "승": "w", "세이브": "sv",
+};
 
 export default function PlayersScreen() {
   const { colors } = useTheme();
@@ -32,9 +37,10 @@ export default function PlayersScreen() {
   const category = type === "hitter" ? hitterCategory : pitcherCategory;
   const categories = type === "hitter" ? HITTER_CATEGORIES : PITCHER_CATEGORIES;
   const setCategory = type === "hitter" ? setHitterCategory : setPitcherCategory;
+  const apiCategory = CATEGORY_API_KEY[category] ?? category.toLowerCase();
 
   const searchQuery = usePlayerSearch(debounced);
-  const rankingsQuery = usePlayerRankings(category, type);
+  const rankingsQuery = usePlayerRankings(apiCategory, type);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>

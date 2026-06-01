@@ -54,8 +54,8 @@ export function BoxScoreTable({
   const away = getTeam(awayTeamCode);
   const home = getTeam(homeTeamCode);
 
-  const hitterHeader = ["선수", "AB", "H", "RBI", "R", "AVG"];
-  const pitcherHeader = ["선수", "결과", "IP", "NP", "H", "HR", "BB", "SO", "ER", "ERA"];
+  const hitterHeader = ["선수", "타수", "안타", "타점", "득점", "타율"];
+  const pitcherHeader = ["선수", "결과", "이닝", "투구", "피안타", "피홈런", "볼넷", "삼진", "자책", "ERA"];
 
   return (
     <View style={{ gap: 16 }}>
