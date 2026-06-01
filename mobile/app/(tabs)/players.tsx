@@ -3,8 +3,6 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, V
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 
-import { AdBanner } from "../../components/AdBanner";
-
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
 import { PlayerCard } from "../../components/PlayerCard";
@@ -121,7 +119,6 @@ export default function PlayersScreen() {
             ) : (
               <PlayerRankingList rankings={rankingsQuery.data ?? []} />
             )}
-            <AdBanner />
           </ScrollView>
         </View>
       )}
