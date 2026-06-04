@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../hooks/useTheme";
 
 import { getTeam } from "../constants/teams";
+import { border, radius, spacing } from "../constants/tokens";
 import type { PlayerProfile } from "../types/player";
 
 interface Props {
@@ -28,47 +29,23 @@ export function PlayerProfileHeader({ profile }: Props) {
           </Text>
         </View>
       </View>
-
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-      <View style={styles.infoGrid}>
-        <Info label="투타" value={`${profile.throws ?? "-"} / ${profile.bats ?? "-"}`} color={colors.text} />
-        <Info label="생년월일" value={profile.birthDate ?? "-"} color={colors.text} />
-        <Info
-          label="신장/체중"
-          value={
-            profile.height || profile.weight
-              ? `${profile.height ?? "-"}cm / ${profile.weight ?? "-"}kg`
-              : "-"
-          }
-          color={colors.text}
-        />
-        <Info label="출신교" value={profile.school ?? "-"} color={colors.text} />
-        <Info label="입단년도" value={profile.debutYear?.toString() ?? "-"} color={colors.text} />
-      </View>
-    </View>
-  );
-}
-
-function Info({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={[styles.infoLabel, { color, opacity: 0.6 }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 8, borderWidth: 1, gap: 12 },
-  topRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  badge: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" },
+  card: { padding: spacing.lg, borderRadius: radius.md, borderWidth: border.card },
+  topRow: { flexDirection: "row", alignItems: "center", gap: spacing.md + 2 },
+  badge: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: border.card,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
   badgeNumber: { color: "#FFFFFF", fontSize: 22, fontWeight: "700" },
   name: { fontSize: 20, fontWeight: "700" },
   subtitle: { fontSize: 13, marginTop: 2 },
-  divider: { height: StyleSheet.hairlineWidth },
-  infoGrid: { gap: 6 },
-  infoRow: { flexDirection: "row", justifyContent: "space-between" },
-  infoLabel: { fontSize: 13 },
-  infoValue: { fontSize: 13, fontWeight: "500" },
 });

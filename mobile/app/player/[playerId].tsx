@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "../../hooks/useTheme";
@@ -8,6 +8,9 @@ import { AdBanner } from "../../components/AdBanner";
 import { ErrorState } from "../../components/ErrorState";
 import { PlayerProfileHeader } from "../../components/PlayerProfileHeader";
 import { PlayerStatTable } from "../../components/PlayerStatTable";
+import { PlayerProfileHeaderSkeleton } from "../../components/skeletons/PlayerProfileHeaderSkeleton";
+import { TableSkeleton } from "../../components/skeletons/TableSkeleton";
+import { spacing } from "../../constants/tokens";
 import { getTeam } from "../../constants/teams";
 import { usePlayer } from "../../hooks/usePlayer";
 import type { ApiResponse } from "../../types/game";
@@ -33,8 +36,9 @@ export default function PlayerDetailScreen() {
 
   if (profileQuery.isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={[styles.skeletonWrap, { backgroundColor: colors.background }]}>
+        <PlayerProfileHeaderSkeleton />
+        <TableSkeleton rows={4} />
       </View>
     );
   }
@@ -66,7 +70,7 @@ export default function PlayerDetailScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>시즌 기록</Text>
         {statQuery.isLoading ? (
-          <ActivityIndicator color={colors.primary} />
+          <TableSkeleton rows={2} />
         ) : statQuery.data ? (
           <PlayerStatTable stat={statQuery.data} />
         ) : (
@@ -82,16 +86,16 @@ export default function PlayerDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 12, gap: 16 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  content: { padding: spacing.md, gap: spacing.lg },
+  skeletonWrap: { flex: 1, padding: spacing.md, gap: spacing.lg },
   teamLink: {
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: "center",
   },
   teamLinkText: { fontSize: 13, fontWeight: "600" },
-  section: { gap: 8 },
+  section: { gap: spacing.sm },
   sectionTitle: { fontSize: 14, fontWeight: "700" },
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -8,6 +8,8 @@ import { ErrorState } from "../../components/ErrorState";
 import { PlayerCard } from "../../components/PlayerCard";
 import { PlayerRankingList } from "../../components/PlayerRankingList";
 import { SearchBar } from "../../components/SearchBar";
+import { TableSkeleton } from "../../components/skeletons/TableSkeleton";
+import { spacing } from "../../constants/tokens";
 import { usePlayerRankings } from "../../hooks/usePlayerRankings";
 import { usePlayerSearch } from "../../hooks/usePlayerSearch";
 
@@ -50,8 +52,8 @@ export default function PlayersScreen() {
 
       {isSearching ? (
         searchQuery.isLoading ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.primary} />
+          <View style={styles.skeletonWrap}>
+            <TableSkeleton rows={6} />
           </View>
         ) : searchQuery.isError ? (
           <ErrorState onRetry={() => searchQuery.refetch()} />
@@ -117,9 +119,7 @@ export default function PlayersScreen() {
 
           <ScrollView contentContainerStyle={styles.listWrap}>
             {rankingsQuery.isLoading ? (
-              <View style={styles.center}>
-                <ActivityIndicator color={colors.primary} />
-              </View>
+              <TableSkeleton rows={10} />
             ) : rankingsQuery.isError ? (
               <ErrorState onRetry={() => rankingsQuery.refetch()} />
             ) : (
@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
   categoryRow: { paddingHorizontal: 12, paddingVertical: 8, gap: 8, alignItems: "center" },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 18, borderWidth: 1 },
   categoryText: { fontSize: 13, fontWeight: "600", lineHeight: 18 },
-  listWrap: { padding: 12 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  listWrap: { padding: spacing.md },
+  skeletonWrap: { padding: spacing.md },
 });

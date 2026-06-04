@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -11,89 +10,45 @@ import {
   Text,
   View,
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { DateNavBar } from "../../components/DateNavBar";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
+import { HighlightCardSkeleton } from "../../components/skeletons/HighlightCardSkeleton";
 import { getTeam } from "../../constants/teams";
 import { useHighlightsByDate } from "../../hooks/useHighlightsByDate";
 import { useTheme } from "../../hooks/useTheme";
 import type { GameHighlight } from "../../types/game";
+import { toYyyymmdd } from "../../utils/date";
+import { border, opacity, radius, spacing } from "../../constants/tokens";
 
-// 홈 탭과 동일한 유틸 — 추후 공통 모듈로 빼도 좋음
-function toYyyymmdd(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}${m}${day}`;
-}
-
-function parseYyyymmdd(yyyymmdd: string): Date {
-  const y = Number(yyyymmdd.slice(0, 4));
-  const m = Number(yyyymmdd.slice(4, 6)) - 1;
-  const d = Number(yyyymmdd.slice(6, 8));
-  return new Date(y, m, d);
-}
-
-function shiftDays(yyyymmdd: string, delta: number): string {
-  const y = Number(yyyymmdd.slice(0, 4));
-  const m = Number(yyyymmdd.slice(4, 6)) - 1;
-  const d = Number(yyyymmdd.slice(6, 8));
-  return toYyyymmdd(new Date(y, m, d + delta));
-}
-
-function displayDate(yyyymmdd: string): string {
-  return `${yyyymmdd.slice(0, 4)}.${yyyymmdd.slice(4, 6)}.${yyyymmdd.slice(6, 8)}`;
-}
+const yesterday = () => toYyyymmdd(new Date(Date.now() - 86400_000));
 
 export default function HighlightsScreen() {
   const { colors } = useTheme();
   // 하이라이트는 보통 경기 종료 후 publish 되므로 기본값은 어제
-  const [selectedDate, setSelectedDate] = useState(() => toYyyymmdd(new Date(Date.now() - 86400_000)));
-  const [pickerVisible, setPickerVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(yesterday);
 
   const query = useHighlightsByDate(selectedDate);
 
   const dateBar = (
-    <View style={[styles.dateBar, { borderBottomColor: colors.border }]}>
-      <Pressable onPress={() => setSelectedDate((d) => shiftDays(d, -1))}>
-        <Text style={[styles.navButton, { color: colors.primary }]}>← 어제</Text>
-      </Pressable>
-      <Pressable
-        onPress={() => setPickerVisible(true)}
-        onLongPress={() => setSelectedDate(toYyyymmdd(new Date(Date.now() - 86400_000)))}
-      >
-        <Text style={[styles.dateText, { color: colors.text }]}>{displayDate(selectedDate)}</Text>
-      </Pressable>
-      <Pressable onPress={() => setSelectedDate((d) => shiftDays(d, 1))}>
-        <Text style={[styles.navButton, { color: colors.primary }]}>다음 →</Text>
-      </Pressable>
-
-      <DateTimePickerModal
-        isVisible={pickerVisible}
-        mode="date"
-        date={parseYyyymmdd(selectedDate)}
-        minimumDate={new Date(new Date().getFullYear() - 1, 0, 1)}
-        maximumDate={new Date()}
-        locale="ko-KR"
-        confirmTextIOS="선택"
-        cancelTextIOS="취소"
-        onConfirm={(date) => {
-          setSelectedDate(toYyyymmdd(date));
-          setPickerVisible(false);
-        }}
-        onCancel={() => setPickerVisible(false)}
-      />
-    </View>
+    <DateNavBar
+      value={selectedDate}
+      onChange={setSelectedDate}
+      defaultDate={yesterday}
+      maxDate={new Date()}
+    />
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
       {dateBar}
       {query.isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={styles.listContent}>
+          <HighlightCardSkeleton />
+          <HighlightCardSkeleton />
+          <HighlightCardSkeleton />
         </View>
       ) : query.isError ? (
         <ErrorState onRetry={() => query.refetch()} />
@@ -145,11 +100,18 @@ function HighlightRow({ data }: RowProps) {
       onPress={openVideo}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: colors.card, borderColor: colors.border },
+        pressed && { opacity: opacity.pressed },
       ]}
     >
       <View style={styles.thumbWrap}>
         <Image source={{ uri: thumbUrl }} style={styles.thumb} resizeMode="cover" />
+        {/* 영상임을 알리는 ▶ 오버레이 */}
+        <View style={styles.playOverlay}>
+          <View style={styles.playCircle}>
+            <View style={styles.playTriangle} />
+          </View>
+        </View>
       </View>
 
       <View style={styles.meta}>
@@ -179,24 +141,41 @@ function HighlightRow({ data }: RowProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  dateBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  navButton: { fontSize: 14, fontWeight: "600" },
-  dateText: { fontSize: 15, fontWeight: "700" },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  listContent: { padding: 12, gap: 10 },
-  card: { borderRadius: 10, borderWidth: 1, overflow: "hidden" },
+  listContent: { padding: spacing.md, gap: spacing.sm + 2 },
+  card: { borderRadius: radius.md, borderWidth: border.card, overflow: "hidden" },
   thumbWrap: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000000" },
   thumb: { width: "100%", height: "100%" },
-  meta: { paddingHorizontal: 12, paddingVertical: 10, gap: 4 },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.85)",
+  },
+  // border 트릭으로 ▶ 모양 — 좌측 변만 색을 채우고 나머지는 투명
+  playTriangle: {
+    width: 0,
+    height: 0,
+    marginLeft: 4,
+    borderTopWidth: 9,
+    borderBottomWidth: 9,
+    borderLeftWidth: 14,
+    borderTopColor: "transparent",
+    borderBottomColor: "transparent",
+    borderLeftColor: "#FFFFFF",
+  },
+  meta: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, gap: spacing.xs },
   teamsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   teamName: { fontSize: 14, fontWeight: "700", flex: 1, textAlign: "center" },
-  score: { fontSize: 14, fontWeight: "700", marginHorizontal: 8 },
+  score: { fontSize: 14, fontWeight: "700", marginHorizontal: spacing.sm },
   title: { fontSize: 12 },
 });

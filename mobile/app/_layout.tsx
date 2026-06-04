@@ -56,10 +56,13 @@ export default function RootLayout() {
 }
 
 function ThemedStack() {
-  const { colors } = useTheme();
+  const { colors, dark } = useTheme();
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={dark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
       <Stack
       screenOptions={{
         contentStyle: { backgroundColor: colors.background },

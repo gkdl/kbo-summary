@@ -1,4 +1,4 @@
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQueries } from "@tanstack/react-query";
 import { useTheme } from "../../hooks/useTheme";
@@ -6,6 +6,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { apiClient } from "../../api/client";
 import { ErrorState } from "../../components/ErrorState";
 import { RankingTable } from "../../components/RankingTable";
+import { TableSkeleton } from "../../components/skeletons/TableSkeleton";
+import { spacing } from "../../constants/tokens";
 import { useRankings } from "../../hooks/useRankings";
 import type { ApiResponse } from "../../types/game";
 import type { RecentForm } from "../../types/team";
@@ -39,8 +41,8 @@ export default function RankingsScreen() {
   if (rankingsQuery.isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={styles.skeletonWrap}>
+          <TableSkeleton rows={10} />
         </View>
       </SafeAreaView>
     );
@@ -74,6 +76,6 @@ export default function RankingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 12 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  content: { padding: spacing.md },
+  skeletonWrap: { padding: spacing.md },
 });

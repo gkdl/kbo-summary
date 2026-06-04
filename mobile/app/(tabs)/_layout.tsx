@@ -33,29 +33,25 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.subText,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600", marginTop: 2 },
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
-          height: Platform.OS === "ios" ? 72 : 56,
+          height: Platform.OS === "ios" ? 76 : 60,
+          paddingTop: 6,
         },
         tabBarItemStyle: {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          paddingVertical: 0,
-          marginVertical: 0,
         },
         tabBarIcon: ({ color, focused }) => {
           const Icon = ICON_BY_ROUTE[route.name] ?? HomeIcon;
-          return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <Icon color={color} focused={focused} size={22} />
-            </View>
-          );
+          return <Icon color={color} focused={focused} size={22} />;
         },
         headerStyle: {
           backgroundColor: colors.background,

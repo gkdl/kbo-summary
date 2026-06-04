@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -10,6 +10,9 @@ import { GameScoreHero } from "../../components/GameScoreHero";
 import { HeadToHeadCard } from "../../components/HeadToHeadCard";
 import { HighlightCard } from "../../components/HighlightCard";
 import { InningTable } from "../../components/InningTable";
+import { ScoreCardSkeleton } from "../../components/skeletons/ScoreCardSkeleton";
+import { TableSkeleton } from "../../components/skeletons/TableSkeleton";
+import { spacing } from "../../constants/tokens";
 import { getTeam } from "../../constants/teams";
 import { useGameDetail } from "../../hooks/useGameDetail";
 import { useGameSummary } from "../../hooks/useGameSummary";
@@ -32,8 +35,9 @@ export default function GameDetailScreen() {
 
   if (detailQuery.isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={[styles.skeletonWrap, { backgroundColor: colors.background }]}>
+        <ScoreCardSkeleton variant="hero" />
+        <TableSkeleton rows={4} />
       </View>
     );
   }
@@ -122,24 +126,24 @@ export default function GameDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 12, gap: 16 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  teamLinkRow: { flexDirection: "row", gap: 8 },
+  content: { padding: spacing.md, gap: spacing.lg },
+  skeletonWrap: { flex: 1, padding: spacing.md, gap: spacing.lg },
+  teamLinkRow: { flexDirection: "row", gap: spacing.sm },
   teamLink: {
     flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: "center",
   },
   teamLinkText: { fontSize: 13, fontWeight: "600" },
   notice: {
-    padding: 20,
+    padding: spacing.xl - 4,
     borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   noticeIcon: { fontSize: 28, fontWeight: "700" },
   noticeTitle: { fontSize: 15, fontWeight: "700" },

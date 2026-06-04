@@ -5,13 +5,6 @@ export interface PlayerProfile {
   playerType: string;
   position: string | null;
   backNumber: string | null;
-  bats: string | null;
-  throws: string | null;
-  birthDate: string | null;
-  height: number | null;
-  weight: number | null;
-  school: string | null;
-  debutYear: number | null;
 }
 
 export interface HittingLine {
