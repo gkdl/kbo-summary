@@ -15,7 +15,6 @@ import com.kbo.summary.core.exception.SearchEmptyException
 import com.kbo.summary.crawler.repository.HitterStatRepository
 import com.kbo.summary.crawler.repository.PitcherStatRepository
 import com.kbo.summary.crawler.repository.PlayerRepository
-import com.kbo.summary.crawler.service.PlayerCrawlerService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -24,17 +23,11 @@ class PlayerService(
     private val playerRepository: PlayerRepository,
     private val hitterStatRepository: HitterStatRepository,
     private val pitcherStatRepository: PitcherStatRepository,
-    private val playerCrawlerService: PlayerCrawlerService,
 ) {
     fun getPlayerProfile(playerId: String): PlayerProfileDto {
-        var player = playerRepository.findByIdOrNull(playerId)
-        // 시즌통계 크롤로 만들어진 stub Player 는 name·team 만 있어 birthDate 등이 비어 있다.
-        // 프로필이 비어 있으면 KBO 선수 상세 페이지를 가져와 풍부한 정보로 채운다.
-        if (player == null || player.birthDate == null) {
-            crawlSafely { playerCrawlerService.crawlPlayerProfile(playerId) }
-            player = playerRepository.findByIdOrNull(playerId)
-        }
-        return (player ?: throw PlayerNotFoundException(playerId)).toProfileDto()
+        val player = playerRepository.findByIdOrNull(playerId)
+            ?: throw PlayerNotFoundException(playerId)
+        return player.toProfileDto()
     }
 
     fun getPlayerStats(playerId: String): PlayerStatDto {
@@ -160,13 +153,6 @@ class PlayerService(
             playerType = playerType.name,
             position = position,
             backNumber = backNumber,
-            bats = bats,
-            throws = throws,
-            birthDate = birthDate,
-            height = height,
-            weight = weight,
-            school = school,
-            debutYear = debutYear,
         )
 
     private fun Player.toSearchDto(): PlayerSearchResultDto =

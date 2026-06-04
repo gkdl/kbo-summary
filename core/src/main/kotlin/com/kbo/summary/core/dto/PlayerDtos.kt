@@ -1,7 +1,6 @@
 package com.kbo.summary.core.dto
 
 import java.math.BigDecimal
-import java.time.LocalDate
 
 data class PlayerProfileDto(
     val playerId: String,
@@ -10,13 +9,6 @@ data class PlayerProfileDto(
     val playerType: String,
     val position: String?,
     val backNumber: String?,
-    val bats: String?,
-    val throws: String?,
-    val birthDate: LocalDate?,
-    val height: Int?,
-    val weight: Int?,
-    val school: String?,
-    val debutYear: Int?,
 )
 
 data class HittingLine(
