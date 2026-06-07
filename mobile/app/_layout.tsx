@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { Platform, StatusBar, StyleSheet } from "react-native";
 
 import { DebugOverlay } from "../components/DebugOverlay";
+import { ForceUpdateScreen } from "../components/ForceUpdateScreen";
+import { useAppVersion } from "../hooks/useAppVersion";
 import { useTheme } from "../hooks/useTheme";
 import { initAds } from "../lib/initAds";
 import { userPrefs } from "../storage/userPrefs";
@@ -57,6 +59,26 @@ export default function RootLayout() {
 
 function ThemedStack() {
   const { colors, dark } = useTheme();
+  const versionGate = useAppVersion();
+
+  // 강제 업데이트 게이트 — Stack 마운트 전에 분기해 모든 화면을 차단
+  // (네트워크 실패·웹·Expo Go 는 useAppVersion 이 fail-open 처리)
+  if (versionGate.needsForceUpdate && versionGate.storeUrl) {
+    return (
+      <>
+        <StatusBar
+          barStyle={dark ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
+        />
+        <ForceUpdateScreen
+          storeUrl={versionGate.storeUrl}
+          currentVersion={versionGate.currentVersion}
+          minVersion={versionGate.minVersion}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <StatusBar
