@@ -33,8 +33,8 @@ data class AppVersionResponse(
 @ConfigurationProperties("app.version-gate")
 data class AppVersionGateProperties(
     val android: PlatformVersionInfo = PlatformVersionInfo(
-        minVersion = 11,
-        latestVersion = 11,
+        minVersion = 13,
+        latestVersion = 13,
         storeUrl = "https://play.google.com/store/apps/details?id=com.kbo.summary",
     ),
     val ios: PlatformVersionInfo = PlatformVersionInfo(
