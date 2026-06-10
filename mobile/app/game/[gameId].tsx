@@ -92,6 +92,9 @@ export default function GameDetailScreen() {
             homeLine={detail.homeLine}
           />
 
+          {/* AI 요약은 이닝 결과 바로 아래 — 흐름을 한눈에 본 직후 요약을 읽을 수 있게 */}
+          <AISummaryCard summary={summaryQuery.data ?? null} loading={summaryQuery.isLoading} />
+
           {detail.highlight ? <HighlightCard highlight={detail.highlight} /> : null}
 
           <BoxScoreTable
@@ -102,8 +105,6 @@ export default function GameDetailScreen() {
             awayPitchers={detail.awayPitchers ?? []}
             homePitchers={detail.homePitchers ?? []}
           />
-
-          <AISummaryCard summary={summaryQuery.data ?? null} loading={summaryQuery.isLoading} />
         </>
       ) : (
         <View style={[styles.notice, { backgroundColor: colors.card, borderColor: colors.border }]}>

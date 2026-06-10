@@ -104,6 +104,7 @@ function ThemedStack() {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="settings" options={{ title: "설정" }} />
       <Stack.Screen name="game/[gameId]" options={{ title: "경기 상세" }} />
       <Stack.Screen name="team/[teamCode]" options={{ title: "팀 상세" }} />
       <Stack.Screen name="player/[playerId]" options={{ title: "선수 상세" }} />
