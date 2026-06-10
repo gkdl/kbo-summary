@@ -18,3 +18,8 @@ ios/
 # Env
 .env.local
 .env.*.local
+
+# Google Service Account key (Play Store 제출용) — 절대 커밋 금지
+kbo-project-*.json
+*service-account*.json
+google-service-account*.json

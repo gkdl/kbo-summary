@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -21,6 +22,7 @@ type Tab = "overview" | "roster" | "headToHead";
 
 export default function TeamDetailScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { teamCode } = useLocalSearchParams<{ teamCode: string }>();
   const code = teamCode ?? "";
 
@@ -110,8 +112,10 @@ export default function TeamDetailScreen() {
         </View>
       ) : null}
       </ScrollView>
-      {/* 화면 하단에 항상 고정 */}
-      <AdBanner />
+      {/* 화면 하단에 항상 고정 — 시스템 홈바에 가리지 않게 safe-area 하단 inset 적용 */}
+      <View style={{ paddingBottom: insets.bottom, backgroundColor: colors.background }}>
+        <AdBanner />
+      </View>
     </View>
   );
 }

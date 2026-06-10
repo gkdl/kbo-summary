@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -21,6 +22,7 @@ import { useHeadToHead } from "../../hooks/useHeadToHead";
 export default function GameDetailScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const id = gameId ?? "";
 
@@ -120,8 +122,11 @@ export default function GameDetailScreen() {
 
       {headToHeadQuery.data ? <HeadToHeadCard data={headToHeadQuery.data} /> : null}
       </ScrollView>
-      {/* 광고는 ScrollView 밖에서 화면 하단에 고정 — 스크롤과 독립 */}
-      <AdBanner />
+      {/* 광고는 ScrollView 밖에서 화면 하단에 고정 — 스크롤과 독립.
+          시스템 홈바에 가리지 않게 safe-area 하단 inset 적용 */}
+      <View style={{ paddingBottom: insets.bottom, backgroundColor: colors.background }}>
+        <AdBanner />
+      </View>
     </View>
   );
 }

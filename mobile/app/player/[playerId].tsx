@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "../../hooks/useTheme";
@@ -19,6 +20,7 @@ import type { PlayerStat } from "../../types/player";
 export default function PlayerDetailScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { playerId } = useLocalSearchParams<{ playerId: string }>();
   const id = playerId ?? "";
 
@@ -79,8 +81,10 @@ export default function PlayerDetailScreen() {
       </View>
 
 </ScrollView>
-      {/* 화면 하단에 항상 고정 */}
-      <AdBanner />
+      {/* 화면 하단에 항상 고정 — 시스템 홈바에 가리지 않게 safe-area 하단 inset 적용 */}
+      <View style={{ paddingBottom: insets.bottom, backgroundColor: colors.background }}>
+        <AdBanner />
+      </View>
     </View>
   );
 }

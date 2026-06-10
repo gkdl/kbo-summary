@@ -86,11 +86,12 @@ function HighlightRow({ data }: RowProps) {
   const thumbUrl = `https://i.ytimg.com/vi/${data.highlight.youtubeVideoId}/hqdefault.jpg`;
   const videoUrl = `https://www.youtube.com/watch?v=${data.highlight.youtubeVideoId}`;
 
+  // canOpenURL 가드는 Android 11+ 에서 https URL 에 false 를 반환할 수 있어(패키지 visibility 제한)
+  // 영상이 안 열리는 원인이 됐다. 상세 화면(HighlightCard)과 동일하게 바로 openURL 시도한다.
   const openVideo = async () => {
-    const ok = await Linking.canOpenURL(videoUrl);
-    if (ok) {
+    try {
       await Linking.openURL(videoUrl);
-    } else {
+    } catch {
       Alert.alert("영상을 열 수 없습니다", videoUrl);
     }
   };
