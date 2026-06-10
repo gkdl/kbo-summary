@@ -93,7 +93,7 @@ export default function HomeScreen() {
           ) : null
         }
         ListEmptyComponent={
-          !myGame ? <EmptyState message="이 날짜의 경기가 없습니다" /> : null
+          !myGame ? <EmptyState icon="⚾" message="이 날짜에는 경기가 없어요" /> : null
         }
         renderItem={({ item }) => <ScoreCard game={item} />}
       />

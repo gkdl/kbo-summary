@@ -75,7 +75,7 @@ export default function TeamDetailScreen() {
             }}
           />
         ) : (
-          <EmptyState message="시즌 통계가 없습니다" />
+          <EmptyState icon="📊" message="아직 시즌 통계가 없어요" />
         )
       ) : null}
 
@@ -85,7 +85,7 @@ export default function TeamDetailScreen() {
         ) : rosterQuery.data ? (
           <TeamRosterList roster={rosterQuery.data} />
         ) : (
-          <EmptyState message="로스터 정보가 없습니다" />
+          <EmptyState icon="👥" message="로스터 정보가 아직 없어요" />
         )
       ) : null}
 

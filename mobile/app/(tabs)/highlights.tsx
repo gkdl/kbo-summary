@@ -66,7 +66,7 @@ export default function HighlightsScreen() {
             />
           }
           ListEmptyComponent={
-            <EmptyState message="이 날짜의 하이라이트가 없습니다" />
+            <EmptyState icon="🎬" message="아직 하이라이트가 없어요" />
           }
           renderItem={({ item }) => <HighlightRow data={item} />}
         />

@@ -6,14 +6,11 @@ interface Props {
   onRetry?: () => void;
 }
 
-export function ErrorState({ message = "데이터를 불러올 수 없습니다", onRetry }: Props) {
+export function ErrorState({ message = "잠시 후 다시 시도해주세요", onRetry }: Props) {
   const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 10, color: 'red', textAlign: 'center', padding: 4 }}>
-        API: {process.env.EXPO_PUBLIC_API_BASE_URL ?? '(none)'}
-      </Text>
-      <Text style={styles.icon}>⚠️</Text>
+      <Text style={styles.icon}>⚾</Text>
       <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
       {onRetry ? (
         <Pressable

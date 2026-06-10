@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../hooks/useTheme";
 import { opacity, spacing } from "../constants/tokens";
-import { displayDate, shiftDays, toYyyymmdd } from "../utils/date";
+import { displayDate, shiftDays } from "../utils/date";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "./icons/NavIcons";
 
 interface Props {

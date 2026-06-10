@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -58,7 +58,11 @@ export default function PlayersScreen() {
         ) : searchQuery.isError ? (
           <ErrorState onRetry={() => searchQuery.refetch()} />
         ) : (searchQuery.data ?? []).length === 0 ? (
-          <EmptyState message="검색 결과가 없습니다" />
+          <EmptyState
+            icon="🔍"
+            message="검색 결과가 없어요"
+            hint="선수 이름 전체로 검색해보세요 (예: 김도영)"
+          />
         ) : (
           <FlatList
             data={searchQuery.data ?? []}
@@ -117,7 +121,16 @@ export default function PlayersScreen() {
             ))}
           </ScrollView>
 
-          <ScrollView contentContainerStyle={styles.listWrap}>
+          <ScrollView
+            contentContainerStyle={styles.listWrap}
+            refreshControl={
+              <RefreshControl
+                refreshing={rankingsQuery.isFetching && !rankingsQuery.isLoading}
+                onRefresh={() => rankingsQuery.refetch()}
+                tintColor={colors.primary}
+              />
+            }
+          >
             {rankingsQuery.isLoading ? (
               <TableSkeleton rows={10} />
             ) : rankingsQuery.isError ? (
