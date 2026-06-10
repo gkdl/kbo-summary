@@ -107,12 +107,6 @@ function HighlightRow({ data }: RowProps) {
     >
       <View style={styles.thumbWrap}>
         <Image source={{ uri: thumbUrl }} style={styles.thumb} resizeMode="cover" />
-        {/* 영상임을 알리는 ▶ 오버레이 */}
-        <View style={styles.playOverlay}>
-          <View style={styles.playCircle}>
-            <View style={styles.playTriangle} />
-          </View>
-        </View>
       </View>
 
       <View style={styles.meta}>
@@ -147,33 +141,6 @@ const styles = StyleSheet.create({
   card: { borderRadius: radius.md, borderWidth: border.card, overflow: "hidden" },
   thumbWrap: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#000000" },
   thumb: { width: "100%", height: "100%" },
-  playOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  playCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.85)",
-  },
-  // border 트릭으로 ▶ 모양 — 좌측 변만 색을 채우고 나머지는 투명
-  playTriangle: {
-    width: 0,
-    height: 0,
-    marginLeft: 4,
-    borderTopWidth: 9,
-    borderBottomWidth: 9,
-    borderLeftWidth: 14,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
-    borderLeftColor: "#FFFFFF",
-  },
   meta: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 2, gap: spacing.xs },
   teamsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   teamName: { fontSize: 14, fontWeight: "700", flex: 1, textAlign: "center" },
