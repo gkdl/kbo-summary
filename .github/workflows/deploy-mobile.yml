@@ -29,11 +29,10 @@ jobs:
       - name: EAS CLI 설치
         run: npm install -g eas-cli
 
-      # main 에 mobile/** 변경이 머지될 때만 실행되는 트리거이므로(위 on.push),
-      # 빌드 직후 Play Store 에 자동 제출(--auto-submit, eas.json 의 submit.store 프로필 사용).
-      # 제출에는 EAS 에 등록된 Google Service Account 키가 필요하다.
-      - name: EAS Build (AAB) & Submit to Play Store
+      # 빌드만 자동(AAB 생성). Play Store 업로드는 수동(EAS 대시보드에서 AAB 받아 Play Console 업로드).
+      # 자동 제출(--auto-submit)은 EAS 에 Google Service Account 키 등록이 선행돼야 하므로 보류.
+      - name: EAS Build (AAB)
         working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile store --non-interactive --auto-submit
+        run: eas build --platform android --profile store --non-interactive
