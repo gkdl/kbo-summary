@@ -27,4 +27,5 @@ export interface PostDetail {
   commentCount: number;
   createdAt: string;
   mine: boolean;
+  liked: boolean;
 }

@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
+import { AdBanner } from "../../components/AdBanner";
 import { TEAMS } from "../../constants/teams";
 import { border, opacity, radius, spacing } from "../../constants/tokens";
 import { useCreatePost } from "../../hooks/usePostMutations";
@@ -52,16 +53,7 @@ export default function WritePostScreen() {
           <Text style={[styles.cancel, { color: colors.subText }]}>취소</Text>
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>글쓰기</Text>
-        <Pressable
-          onPress={onSubmit}
-          disabled={!canSubmit}
-          style={({ pressed }) => [
-            styles.submit,
-            { backgroundColor: colors.primary, opacity: !canSubmit ? opacity.disabled : pressed ? opacity.pressed : 1 },
-          ]}
-        >
-          <Text style={styles.submitText}>{createPost.isPending ? "등록 중" : "등록"}</Text>
-        </Pressable>
+        <View style={{ width: 32 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -116,7 +108,21 @@ export default function WritePostScreen() {
             style={[styles.contentInput, { color: colors.text }]}
           />
         </ScrollView>
+
+        {/* 등록 — 우측 하단 FAB */}
+        <Pressable
+          onPress={onSubmit}
+          disabled={!canSubmit}
+          style={({ pressed }) => [
+            styles.fab,
+            { backgroundColor: colors.primary, opacity: !canSubmit ? opacity.disabled : pressed ? opacity.pressed : 1 },
+          ]}
+        >
+          <Text style={styles.fabText}>{createPost.isPending ? "등록 중" : "등록"}</Text>
+        </Pressable>
       </KeyboardAvoidingView>
+
+      <AdBanner />
     </SafeAreaView>
   );
 }
@@ -133,9 +139,18 @@ const styles = StyleSheet.create({
   },
   cancel: { fontSize: 15 },
   headerTitle: { fontSize: 16, fontWeight: "700" },
-  submit: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.md },
-  submitText: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
-  body: { padding: spacing.md, gap: spacing.md },
+  fab: {
+    position: "absolute",
+    right: spacing.lg,
+    bottom: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    height: 48,
+    borderRadius: radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  body: { padding: spacing.md, gap: spacing.md, paddingBottom: 90 },
   boardLabel: { fontSize: 12, fontWeight: "600" },
   chip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, borderWidth: border.card },
   chipText: { fontSize: 13, fontWeight: "600" },
