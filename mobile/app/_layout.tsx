@@ -10,6 +10,7 @@ import { useTheme } from "../hooks/useTheme";
 import { initAds } from "../lib/initAds";
 import { userPrefs } from "../storage/userPrefs";
 import { useAppStore } from "../store/useAppStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,11 @@ export default function RootLayout() {
       hydrate({ myTeam: prefs.myTeam, isOnboardingDone: prefs.isOnboardingDone });
     });
   }, [hydrate]);
+
+  // 앱 시작 시 SecureStore 의 로그인 토큰 복원
+  useEffect(() => {
+    void useAuthStore.getState().hydrate();
+  }, []);
 
   // Google AdMob SDK 초기화 (BannerAd 렌더링 전에 반드시 1회 필요)
   // web 번들에서는 initAds.web.ts 의 no-op 가 자동 선택됨
@@ -104,10 +110,13 @@ function ThemedStack() {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="settings" options={{ title: "설정" }} />
       <Stack.Screen name="game/[gameId]" options={{ title: "경기 상세" }} />
       <Stack.Screen name="team/[teamCode]" options={{ title: "팀 상세" }} />
       <Stack.Screen name="player/[playerId]" options={{ title: "선수 상세" }} />
+      <Stack.Screen name="post/[postId]" options={{ title: "게시글" }} />
+      <Stack.Screen name="post/write" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
     </>
   );

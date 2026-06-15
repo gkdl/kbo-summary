@@ -201,6 +201,44 @@ export function VideoIcon({ color, size = 22, focused }: Props) {
   );
 }
 
+/**
+ * 말풍선 아이콘 — 둥근 사각형 + 좌하단 꼬리. 커뮤니티 탭 용.
+ */
+export function ChatIcon({ color, size = 22, focused }: Props) {
+  const bubbleW = size * 0.9;
+  const bubbleH = size * 0.72;
+  const tail = size * 0.18;
+  return (
+    <View style={[styles.box, { width: size, height: size }]}>
+      <View
+        style={{
+          width: bubbleW,
+          height: bubbleH,
+          borderRadius: 6,
+          backgroundColor: focused ? color : "transparent",
+          borderColor: color,
+          borderWidth: focused ? 0 : STROKE,
+          marginTop: -tail * 0.5,
+        }}
+      />
+      {/* 좌하단 꼬리 */}
+      <View
+        style={{
+          position: "absolute",
+          left: size * 0.2,
+          bottom: size * 0.14,
+          width: 0,
+          height: 0,
+          borderTopWidth: tail,
+          borderRightWidth: tail,
+          borderTopColor: focused ? color : color,
+          borderRightColor: "transparent",
+        }}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   box: { alignItems: "center", justifyContent: "center" },
 });

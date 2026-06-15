@@ -1,19 +1,35 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { TeamSelector } from "../components/TeamSelector";
 import { getTeam } from "../constants/teams";
 import { border, opacity, radius, spacing } from "../constants/tokens";
+import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { userPrefs } from "../storage/userPrefs";
 import { useAppStore } from "../store/useAppStore";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
+  const { member, isAuthed, logout, withdraw } = useAuth();
   const myTeam = useAppStore((state) => state.myTeam);
   const setMyTeam = useAppStore((state) => state.setMyTeam);
   const [savedNote, setSavedNote] = useState<string | null>(null);
+
+  const onLogout = () =>
+    Alert.alert("로그아웃", "로그아웃 하시겠어요?", [
+      { text: "취소", style: "cancel" },
+      { text: "로그아웃", style: "destructive", onPress: () => void logout() },
+    ]);
+
+  const onWithdraw = () =>
+    Alert.alert("회원 탈퇴", "탈퇴하면 작성한 글은 '탈퇴한 회원'으로 표시됩니다. 계속할까요?", [
+      { text: "취소", style: "cancel" },
+      { text: "탈퇴", style: "destructive", onPress: () => void withdraw() },
+    ]);
 
   const apply = async (teamCode: string | null) => {
     await userPrefs.setMyTeam(teamCode);
@@ -25,7 +41,44 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>응원하는 팀</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>계정</Text>
+        {isAuthed ? (
+          <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
+            <View style={[styles.accountRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.nickname, { color: colors.text }]}>{member?.nickname}</Text>
+              <Text style={[styles.accountSub, { color: colors.subText }]}>카카오 로그인</Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <Pressable
+                onPress={onLogout}
+                style={({ pressed }) => [
+                  styles.outlineBtn,
+                  { borderColor: colors.border, opacity: pressed ? opacity.pressed : 1, flex: 1 },
+                ]}
+              >
+                <Text style={[styles.outlineLabel, { color: colors.text }]}>로그아웃</Text>
+              </Pressable>
+              <Pressable
+                onPress={onWithdraw}
+                style={({ pressed }) => [
+                  styles.outlineBtn,
+                  { borderColor: colors.border, opacity: pressed ? opacity.pressed : 1 },
+                ]}
+              >
+                <Text style={[styles.outlineLabel, { color: colors.subText }]}>회원 탈퇴</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => router.push("/login")}
+            style={({ pressed }) => [styles.kakaoBtn, { opacity: pressed ? opacity.pressed : 1 }]}
+          >
+            <Text style={styles.kakaoLabel}>카카오로 로그인</Text>
+          </Pressable>
+        )}
+
+        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: spacing.xl }]}>응원하는 팀</Text>
         <Text style={[styles.sectionDesc, { color: colors.subText }]}>
           선택하면 홈 화면 맨 위에 마이팀 경기를 먼저 보여드려요
         </Text>
@@ -60,6 +113,29 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.sm },
   sectionTitle: { fontSize: 18, fontWeight: "700" },
   sectionDesc: { fontSize: 13, marginTop: 4, lineHeight: 19 },
+  accountRow: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: border.card,
+  },
+  nickname: { fontSize: 16, fontWeight: "700" },
+  accountSub: { fontSize: 12, marginTop: 2 },
+  outlineBtn: {
+    paddingVertical: 11,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: border.card,
+    alignItems: "center",
+  },
+  outlineLabel: { fontSize: 14, fontWeight: "600" },
+  kakaoBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: "#FEE500",
+    borderRadius: radius.md,
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  kakaoLabel: { fontSize: 15, fontWeight: "700", color: "#3C1E1E" },
   clearButton: {
     marginTop: spacing.lg,
     paddingVertical: 12,

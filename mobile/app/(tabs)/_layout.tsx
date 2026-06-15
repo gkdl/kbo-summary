@@ -6,7 +6,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AdBanner } from "../../components/AdBanner";
-import { HomeIcon, PeopleIcon, TrophyIcon, VideoIcon } from "../../components/icons/TabIcons";
+import { ChatIcon, HomeIcon, PeopleIcon, TrophyIcon, VideoIcon } from "../../components/icons/TabIcons";
 import { useTheme } from "../../hooks/useTheme";
 
 const ICON_BY_ROUTE: Record<
@@ -15,6 +15,7 @@ const ICON_BY_ROUTE: Record<
 > = {
   index: HomeIcon,
   highlights: VideoIcon,
+  community: ChatIcon,
   players: PeopleIcon,
   rankings: TrophyIcon,
 };
@@ -87,6 +88,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen name="highlights" options={{ title: "하이라이트" }} />
+      <Tabs.Screen name="community" options={{ title: "커뮤니티" }} />
       <Tabs.Screen name="players" options={{ title: "선수" }} />
       <Tabs.Screen name="rankings" options={{ title: "순위" }} />
     </Tabs>

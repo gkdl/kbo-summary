@@ -30,7 +30,10 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "extraMavenRepos": [
+              "https://devrepo.kakao.com/nexus/content/groups/public/"
+            ]
           }
         }
       ],
@@ -49,6 +52,14 @@
           "backgroundColor": "#1A1748"
         }
       ],
+      [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": "93cd69e1b17c857e7f5f362801b9cc7e",
+          "kotlinVersion": "2.1.20"
+        }
+      ],
+      "expo-secure-store",
       "@react-native-community/datetimepicker"
     ],
     "extra": {
