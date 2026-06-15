@@ -27,6 +27,16 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+# 카카오 로그인 / JWT — 실제 값은 서버 환경변수(.env)로 주입한다
+kakao:
+  # 카카오 access token 검증에는 별도 시크릿이 필요 없으나, 추후 검증 강화를 위해 앱 정보 보관
+  app-id: ${KAKAO_APP_ID:}
+jwt:
+  # 반드시 환경변수로 강력한 시크릿 주입 (최소 32바이트). 기본값은 로컬 개발 전용.
+  secret: ${JWT_SECRET:local-dev-only-secret-please-override-with-env-32b+}
+  access-token-validity-seconds: ${JWT_ACCESS_TTL:3600}        # 1시간
+  refresh-token-validity-seconds: ${JWT_REFRESH_TTL:2592000}   # 30일
+
 springdoc:
   api-docs:
     path: /v3/api-docs

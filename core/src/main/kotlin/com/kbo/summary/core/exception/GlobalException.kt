@@ -33,6 +33,11 @@ class UnauthorizedException(
     cause: Throwable? = null,
 ) : BusinessException(ErrorCode.UNAUTHORIZED, message, cause)
 
+class ForbiddenException(
+    message: String = ErrorCode.FORBIDDEN.defaultMessage,
+    cause: Throwable? = null,
+) : BusinessException(ErrorCode.FORBIDDEN, message, cause)
+
 class CrawlingException(
     message: String = ErrorCode.CRAWLING_FAILED.defaultMessage,
     cause: Throwable? = null,
