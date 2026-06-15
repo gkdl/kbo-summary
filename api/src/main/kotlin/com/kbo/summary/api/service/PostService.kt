@@ -1,10 +1,14 @@
 package com.kbo.summary.api.service
 
 import com.kbo.summary.api.repository.MemberRepository
+import com.kbo.summary.api.repository.PostLikeRepository
 import com.kbo.summary.api.repository.PostRepository
 import com.kbo.summary.core.domain.Post
+import com.kbo.summary.core.domain.PostLike
+import com.kbo.summary.core.domain.PostLikeId
 import com.kbo.summary.core.domain.PostStatus
 import com.kbo.summary.core.dto.CreatePostRequest
+import com.kbo.summary.core.dto.LikeResponse
 import com.kbo.summary.core.dto.PostDetailDto
 import com.kbo.summary.core.dto.PostListDto
 import com.kbo.summary.core.dto.PostListItemDto
@@ -22,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional
 class PostService(
     private val postRepository: PostRepository,
     private val memberRepository: MemberRepository,
+    private val postLikeRepository: PostLikeRepository,
 ) {
     @Transactional(readOnly = true)
     fun list(teamCode: String?, sort: String, page: Int): PostListDto {
@@ -70,7 +75,26 @@ class PostService(
             commentCount = post.commentCount,
             createdAt = post.createdAt,
             mine = currentMemberId != null && currentMemberId == post.memberId,
+            liked = currentMemberId != null &&
+                postLikeRepository.existsById_PostIdAndId_MemberId(post.postId!!, currentMemberId),
         )
+    }
+
+    /** 좋아요 토글 — 이미 눌렀으면 취소, 아니면 추가. 결과 상태와 갱신된 카운트 반환. */
+    @Transactional
+    fun toggleLike(postId: Long, memberId: Long): LikeResponse {
+        val post = activePost(postId)
+        val liked: Boolean
+        if (postLikeRepository.existsById_PostIdAndId_MemberId(postId, memberId)) {
+            postLikeRepository.deleteById_PostIdAndId_MemberId(postId, memberId)
+            post.likeCount = (post.likeCount - 1).coerceAtLeast(0)
+            liked = false
+        } else {
+            postLikeRepository.save(PostLike(PostLikeId(postId = postId, memberId = memberId)))
+            post.likeCount += 1
+            liked = true
+        }
+        return LikeResponse(liked = liked, likeCount = post.likeCount)
     }
 
     @Transactional

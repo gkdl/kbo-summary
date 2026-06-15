@@ -38,4 +38,6 @@ data class PostDetailDto(
     val createdAt: LocalDateTime,
     // 현재 사용자가 작성자인지 (삭제 버튼 노출 등)
     val mine: Boolean,
+    // 현재 사용자가 좋아요를 눌렀는지
+    val liked: Boolean,
 )

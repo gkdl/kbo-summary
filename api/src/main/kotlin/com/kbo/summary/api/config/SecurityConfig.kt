@@ -32,9 +32,12 @@ class SecurityConfig(
                 // 인증이 필요한 경로 — 내 정보 조회/탈퇴
                 authorize(HttpMethod.GET, "/api/members/me", authenticated)
                 authorize(HttpMethod.DELETE, "/api/members/me", authenticated)
-                // 게시글 작성·삭제는 로그인 필요 (목록·상세 조회는 공개)
+                // 게시글 작성·삭제·좋아요, 댓글 작성·삭제는 로그인 필요 (조회는 공개)
                 authorize(HttpMethod.POST, "/api/posts", authenticated)
                 authorize(HttpMethod.DELETE, "/api/posts/*", authenticated)
+                authorize(HttpMethod.POST, "/api/posts/*/like", authenticated)
+                authorize(HttpMethod.POST, "/api/posts/*/comments", authenticated)
+                authorize(HttpMethod.DELETE, "/api/comments/*", authenticated)
                 // 그 외(로그인·조회 API·actuator·swagger 등)는 공개
                 authorize(anyRequest, permitAll)
             }

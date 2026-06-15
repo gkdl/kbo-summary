@@ -4,6 +4,7 @@ import com.kbo.summary.api.auth.CurrentMember
 import com.kbo.summary.api.service.PostService
 import com.kbo.summary.core.dto.ApiResponse
 import com.kbo.summary.core.dto.CreatePostRequest
+import com.kbo.summary.core.dto.LikeResponse
 import com.kbo.summary.core.dto.PostDetailDto
 import com.kbo.summary.core.dto.PostListDto
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -43,4 +44,8 @@ class PostController(
         postService.delete(postId, CurrentMember.id())
         return ApiResponse.ok(Unit)
     }
+
+    @PostMapping("/{postId}/like")
+    fun toggleLike(@PathVariable postId: Long): ApiResponse<LikeResponse> =
+        ApiResponse.ok(postService.toggleLike(postId, CurrentMember.id()))
 }
