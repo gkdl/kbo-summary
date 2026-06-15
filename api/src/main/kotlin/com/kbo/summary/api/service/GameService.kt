@@ -69,19 +69,16 @@ class GameService(
     private val gameBoxPitcherRepository: GameBoxPitcherRepository,
     private val gameCrawlerService: GameCrawlerService,
     private val geminiClient: GeminiClient,
+    private val gameCrawlThrottle: GameCrawlThrottle,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun getGamesByDate(date: LocalDate): List<GameDto> {
-        // 진행 중·예정 경기는 매 조회마다 새로고침, 옛 잘못된 점수 데이터도 같이 교정됨.
-        // 충분히 과거(7일 이전)인 종료 경기는 더 이상 변하지 않으니 DB 캐시만 사용.
-        val today = LocalDate.now()
-        val needsRefresh = !date.isBefore(today.minusDays(7))
-        if (needsRefresh) {
-            crawlSafely { gameCrawlerService.crawlGamesOn(date) }
-        }
+        // 읽기 경로는 DB 만 조회한다. 오늘 경기의 라이브 갱신은 스케줄러가 담당.
+        // DB 에 아직 없는 날짜(과거 첫 조회·미래 일정·스케줄러 비활성 시간)만 그 자리에서 1회 보충하고,
+        // throttle 로 같은 날짜 연타 크롤(경기 없는 날 등)을 막는다.
         var games = gameRepository.findByGameDate(date)
-        if (games.isEmpty() && !needsRefresh) {
+        if (games.isEmpty() && gameCrawlThrottle.tryAcquire("games:$date")) {
             crawlSafely { gameCrawlerService.crawlGamesOn(date) }
             games = gameRepository.findByGameDate(date)
         }
@@ -92,10 +89,10 @@ class GameService(
         val game = gameRepository.findByGameId(gameId)
             ?: throw GameNotFoundException(gameId)
         var scores = gameScoreRepository.findByGameId(gameId)
-        // 시작 전 경기는 GameScore 자체가 없음. 그 외엔 옛 잘못된 점수 데이터 교정을 위해
-        // 최근 7일 이내 경기는 매번 fresh crawl (crawlGameScore 가 기존 행 삭제 후 새로 저장).
-        val isRecent = !game.gameDate.isBefore(LocalDate.now().minusDays(7))
-        if (game.status != GameStatus.SCHEDULED && (scores.isEmpty() || isRecent)) {
+        // 시작 전 경기는 GameScore 자체가 없음. 종료/진행 경기의 라이브 갱신은 스케줄러가 담당하므로
+        // 읽기 경로는 DB 가 비어 있을 때만(스케줄러가 아직 못 채운 경기) throttle 걸어 1회 보충한다.
+        if (game.status != GameStatus.SCHEDULED && scores.isEmpty() &&
+            gameCrawlThrottle.tryAcquire("score:$gameId")) {
             crawlSafely { gameCrawlerService.crawlGameScore(gameId) }
             scores = gameScoreRepository.findByGameId(gameId)
         }
@@ -118,6 +115,8 @@ class GameService(
                 homePitchers = dbPitchers.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
             )
         }
+        // DB 에 없으면(스케줄러가 아직 저장 전) throttle 걸어 1회만 보충 크롤
+        if (!gameCrawlThrottle.tryAcquire("box:${game.gameId}")) return null
         return runCatching {
             runBlocking { gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode) }
         }.getOrNull()
@@ -127,6 +126,7 @@ class GameService(
         gameHighlightRepository.findByGameId(gameId)?.let {
             return CrawlerHighlightDto(gameId = it.gameId, youtubeVideoId = it.youtubeVideoId, title = it.title)
         }
+        if (!gameCrawlThrottle.tryAcquire("highlight:$gameId")) return null
         return runCatching { runBlocking { gameCrawlerService.crawlAndSaveHighlight(gameId) } }.getOrNull()
     }
 

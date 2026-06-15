@@ -67,6 +67,10 @@ class KboCrawlerScheduler(
                 .forEach { game ->
                     // 이미 저장된 경기는 skip
                     if (gameBoxHitterRepository.findByGameId(game.gameId).isNotEmpty()) return@forEach
+                    // 최종 이닝 스코어 확정 — refreshTodayScores 활성시간(23시) 이후 끝난 경기 보완.
+                    // (읽기 경로에서 스코어를 더 이상 재크롤하지 않으므로 여기서 확정해 둔다)
+                    runCatching { gameCrawlerService.crawlGameScore(game.gameId) }
+                        .onFailure { log.warn("종료 경기 스코어 확정 실패 ({}): {}", game.gameId, it.message) }
                     runCatching {
                         gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
                     }.onFailure { log.warn("박스스코어 저장 실패 ({}): {}", game.gameId, it.message) }
