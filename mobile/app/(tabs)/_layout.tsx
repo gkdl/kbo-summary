@@ -68,25 +68,20 @@ export default function TabsLayout() {
         },
         headerTitleStyle: { color: colors.text, fontSize: 17, fontWeight: "700" },
         headerTitleAlign: "center",
+        // 모든 탭 헤더 우측에 설정 진입점 (팀 변경·로그인/로그아웃·회원 탈퇴를 한곳에서)
+        headerRight: () => (
+          <Pressable
+            onPress={() => router.push("/settings")}
+            accessibilityLabel="설정"
+            hitSlop={8}
+            style={({ pressed }) => [{ paddingHorizontal: 16, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text style={{ color: colors.primary, fontSize: 14, fontWeight: "600" }}>설정</Text>
+          </Pressable>
+        ),
       })}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "홈",
-          // 홈 헤더 우측에 마이팀 변경 진입점 — 온보딩을 건너뛰었거나 팀을 바꾸고 싶을 때
-          headerRight: () => (
-            <Pressable
-              onPress={() => router.push("/settings")}
-              accessibilityLabel="설정"
-              hitSlop={8}
-              style={({ pressed }) => [{ paddingHorizontal: 16, opacity: pressed ? 0.6 : 1 }]}
-            >
-              <Text style={{ color: colors.primary, fontSize: 14, fontWeight: "600" }}>팀 변경</Text>
-            </Pressable>
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "홈" }} />
       <Tabs.Screen name="highlights" options={{ title: "하이라이트" }} />
       <Tabs.Screen name="community" options={{ title: "커뮤니티" }} />
       <Tabs.Screen name="players" options={{ title: "선수" }} />

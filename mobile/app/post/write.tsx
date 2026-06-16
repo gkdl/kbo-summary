@@ -1,7 +1,9 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,6 +21,9 @@ import { TEAMS } from "../../constants/teams";
 import { border, opacity, radius, spacing } from "../../constants/tokens";
 import { useCreatePost } from "../../hooks/usePostMutations";
 import { useTheme } from "../../hooks/useTheme";
+import { imageFullUrl, pickImages, uploadImage } from "../../lib/imageUpload";
+
+const MAX_IMAGES = 4;
 
 export default function WritePostScreen() {
   const { colors } = useTheme();
@@ -30,13 +35,37 @@ export default function WritePostScreen() {
   const [team, setTeam] = useState<string>(params.team ?? TEAMS[0].code);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [images, setImages] = useState<string[]>([]); // 업로드된 서버 경로
+  const [uploading, setUploading] = useState(false);
 
-  const canSubmit = title.trim().length > 0 && content.trim().length > 0 && !createPost.isPending;
+  const canSubmit =
+    title.trim().length > 0 && content.trim().length > 0 && !createPost.isPending && !uploading;
+
+  const onAddImages = async () => {
+    const remaining = MAX_IMAGES - images.length;
+    if (remaining <= 0) return;
+    const uris = await pickImages(remaining);
+    if (uris.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const uri of uris.slice(0, remaining)) {
+        uploaded.push(await uploadImage(uri));
+      }
+      setImages((prev) => [...prev, ...uploaded].slice(0, MAX_IMAGES));
+    } catch {
+      Alert.alert("업로드 실패", "이미지 업로드에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (url: string) => setImages((prev) => prev.filter((u) => u !== url));
 
   const onSubmit = () => {
     if (!canSubmit) return;
     createPost.mutate(
-      { teamCode: team, title: title.trim(), content: content.trim() },
+      { teamCode: team, title: title.trim(), content: content.trim(), imageUrls: images },
       {
         onSuccess: (data) => {
           router.replace(data ? `/post/${data.postId}` : "/community");
@@ -107,6 +136,33 @@ export default function WritePostScreen() {
             maxLength={2000}
             style={[styles.contentInput, { color: colors.text }]}
           />
+
+          {/* 이미지 첨부 (최대 4장) */}
+          <View style={styles.imageRow}>
+            {images.map((url) => (
+              <View key={url} style={styles.thumbWrap}>
+                <Image source={{ uri: imageFullUrl(url) }} style={styles.thumb} />
+                <Pressable onPress={() => removeImage(url)} style={styles.thumbRemove} hitSlop={6}>
+                  <Text style={styles.thumbRemoveText}>×</Text>
+                </Pressable>
+              </View>
+            ))}
+            {images.length < MAX_IMAGES ? (
+              <Pressable
+                onPress={onAddImages}
+                disabled={uploading}
+                style={[styles.addImage, { borderColor: colors.border }]}
+              >
+                {uploading ? (
+                  <ActivityIndicator color={colors.subText} />
+                ) : (
+                  <Text style={[styles.addImageText, { color: colors.subText }]}>
+                    📷{"\n"}{images.length}/{MAX_IMAGES}
+                  </Text>
+                )}
+              </Pressable>
+            ) : null}
+          </View>
         </ScrollView>
 
         {/* 등록 — 우측 하단 FAB */}
@@ -155,5 +211,30 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, borderWidth: border.card },
   chipText: { fontSize: 13, fontWeight: "600" },
   titleInput: { fontSize: 17, paddingVertical: spacing.sm, borderBottomWidth: border.hairline },
-  contentInput: { fontSize: 15, lineHeight: 24, minHeight: 220, textAlignVertical: "top" },
+  contentInput: { fontSize: 15, lineHeight: 24, minHeight: 180, textAlignVertical: "top" },
+  imageRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  thumbWrap: { width: 72, height: 72 },
+  thumb: { width: 72, height: 72, borderRadius: radius.md },
+  thumbRemove: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  thumbRemoveText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700", lineHeight: 17 },
+  addImage: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.md,
+    borderWidth: border.card,
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addImageText: { fontSize: 12, textAlign: "center", lineHeight: 18 },
 });

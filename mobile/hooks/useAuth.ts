@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { apiClient } from "../api/client";
-import { loginWithKakao, logoutKakao } from "../lib/kakao";
+import { loginWithKakao, logoutKakao, unlinkKakao } from "../lib/kakao";
 import { useAuthStore } from "../store/useAuthStore";
 
 /**
@@ -34,7 +34,8 @@ export function useAuth() {
     try {
       await apiClient.delete("/api/members/me");
     } finally {
-      await logoutKakao();
+      // 탈퇴 시 카카오 연결 해제 — 재로그인 때 동의를 다시 받도록 (unlink 가 세션도 해제)
+      await unlinkKakao();
       await clearAuth();
     }
   };

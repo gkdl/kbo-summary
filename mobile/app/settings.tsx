@@ -45,8 +45,20 @@ export default function SettingsScreen() {
         {isAuthed ? (
           <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
             <View style={[styles.accountRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.nickname, { color: colors.text }]}>{member?.nickname}</Text>
-              <Text style={[styles.accountSub, { color: colors.subText }]}>카카오 로그인</Text>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{(member?.nickname ?? "?").slice(0, 1)}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.nickname, { color: colors.text }]} numberOfLines={1}>
+                  {member?.nickname}
+                </Text>
+                <View style={styles.kakaoTagRow}>
+                  <View style={styles.kakaoTag}>
+                    <Text style={styles.kakaoTagText}>kakao</Text>
+                  </View>
+                  <Text style={[styles.accountSub, { color: colors.subText }]}>카카오 계정으로 로그인됨</Text>
+                </View>
+              </View>
             </View>
             <View style={{ flexDirection: "row", gap: spacing.sm }}>
               <Pressable
@@ -114,12 +126,32 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: "700" },
   sectionDesc: { fontSize: 13, marginTop: 4, lineHeight: 19 },
   accountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
     padding: spacing.md,
     borderRadius: radius.md,
     borderWidth: border.card,
   },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: "#FEE500",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { fontSize: 20, fontWeight: "700", color: "#3C1E1E" },
   nickname: { fontSize: 16, fontWeight: "700" },
-  accountSub: { fontSize: 12, marginTop: 2 },
+  kakaoTagRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+  kakaoTag: {
+    backgroundColor: "#FEE500",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  kakaoTagText: { fontSize: 10, fontWeight: "700", color: "#3C1E1E" },
+  accountSub: { fontSize: 12 },
   outlineBtn: {
     paddingVertical: 11,
     paddingHorizontal: spacing.md,

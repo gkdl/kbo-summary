@@ -7,6 +7,7 @@ export interface PostListItem {
   likeCount: number;
   commentCount: number;
   createdAt: string;
+  thumbnailUrl: string | null;
 }
 
 export interface PostListResponse {
@@ -28,4 +29,5 @@ export interface PostDetail {
   createdAt: string;
   mine: boolean;
   liked: boolean;
+  imageUrls: string[];
 }

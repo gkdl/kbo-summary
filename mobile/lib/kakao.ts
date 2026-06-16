@@ -1,4 +1,8 @@
-import { login as kakaoSdkLogin, logout as kakaoSdkLogout } from "@react-native-seoul/kakao-login";
+import {
+  login as kakaoSdkLogin,
+  logout as kakaoSdkLogout,
+  unlink as kakaoSdkUnlink,
+} from "@react-native-seoul/kakao-login";
 
 import { apiClient } from "../api/client";
 import type { TokenResponse } from "../types/auth";
@@ -27,5 +31,17 @@ export async function logoutKakao(): Promise<void> {
     await kakaoSdkLogout();
   } catch {
     // 카카오 세션이 이미 없을 수 있음 — 무시
+  }
+}
+
+/**
+ * 카카오 연결 끊기(unlink). 탈퇴 시 호출해 앱-카카오 연결을 해제하면
+ * 다음 로그인 때 동의 화면이 새로 뜬다. (unlink 는 세션도 함께 해제)
+ */
+export async function unlinkKakao(): Promise<void> {
+  try {
+    await kakaoSdkUnlink();
+  } catch {
+    // 토큰 만료 등으로 unlink 실패할 수 있음 — 탈퇴 자체는 계속 진행
   }
 }

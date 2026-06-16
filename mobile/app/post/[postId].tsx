@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,23 +9,31 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { AdBanner } from "../../components/AdBanner";
 import { ErrorState } from "../../components/ErrorState";
+import { ModerationSheet } from "../../components/ModerationSheet";
 import { TableSkeleton } from "../../components/skeletons/TableSkeleton";
 import { getTeam } from "../../constants/teams";
 import { border, opacity, radius, spacing } from "../../constants/tokens";
 import { useAuth } from "../../hooks/useAuth";
 import { useComments, useCreateComment, useDeleteComment, useToggleLike } from "../../hooks/useComments";
+import { useBlock, useReport } from "../../hooks/useModeration";
 import { usePost } from "../../hooks/usePosts";
 import { useDeletePost } from "../../hooks/usePostMutations";
 import { useTheme } from "../../hooks/useTheme";
+import { imageFullUrl } from "../../lib/imageUpload";
 import type { Comment } from "../../types/comment";
 import { relativeTime } from "../../utils/relativeTime";
+
+type ModTarget = { type: "POST" | "COMMENT"; id: number; authorId: number };
 
 export default function PostDetailScreen() {
   const { colors } = useTheme();
@@ -40,8 +49,14 @@ export default function PostDetailScreen() {
   const createComment = useCreateComment(id);
   const deleteComment = useDeleteComment(id);
 
+  const { width } = useWindowDimensions();
+  const imgWidth = width - spacing.md * 2; // content padding 좌우 제외
+  const qc = useQueryClient();
+  const report = useReport();
+  const block = useBlock();
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: number; nickname: string } | null>(null);
+  const [modTarget, setModTarget] = useState<ModTarget | null>(null);
 
   const post = query.data;
   const team = post?.teamCode ? getTeam(post.teamCode) : undefined;
@@ -96,6 +111,46 @@ export default function PostDetailScreen() {
       { text: "삭제", style: "destructive", onPress: () => deleteComment.mutate(commentId) },
     ]);
 
+  const openModeration = (target: ModTarget) => {
+    if (!requireAuth()) return;
+    setModTarget(target);
+  };
+
+  const onReport = (reason: string) => {
+    if (!modTarget) return;
+    const t = modTarget;
+    setModTarget(null);
+    report.mutate(
+      { targetType: t.type, targetId: t.id, reason },
+      {
+        onSuccess: () => Alert.alert("신고 완료", "신고가 접수되었습니다."),
+        onError: () => Alert.alert("신고 실패", "잠시 후 다시 시도해주세요."),
+      },
+    );
+  };
+
+  const onBlock = () => {
+    if (!modTarget) return;
+    const authorId = modTarget.authorId;
+    setModTarget(null);
+    Alert.alert("사용자 차단", "이 사용자의 글과 댓글이 더 이상 보이지 않습니다. 차단할까요?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "차단",
+        style: "destructive",
+        onPress: () =>
+          block.mutate(authorId, {
+            onSuccess: () => {
+              void qc.invalidateQueries({ queryKey: ["posts"] });
+              void qc.invalidateQueries({ queryKey: ["comments", id] });
+              Alert.alert("차단 완료", "사용자를 차단했습니다.");
+            },
+            onError: () => Alert.alert("차단 실패", "잠시 후 다시 시도해주세요."),
+          }),
+      },
+    ]);
+  };
+
   if (query.isLoading) {
     return (
       <View style={[styles.skeletonWrap, { backgroundColor: colors.background }]}>
@@ -121,7 +176,15 @@ export default function PostDetailScreen() {
               <Pressable onPress={onDeletePost} style={styles.deleteBtn} hitSlop={8}>
                 <Text style={[styles.deleteText, { color: colors.subText }]}>삭제</Text>
               </Pressable>
-            ) : null}
+            ) : (
+              <Pressable
+                onPress={() => openModeration({ type: "POST", id: post.postId, authorId: post.authorId })}
+                style={styles.deleteBtn}
+                hitSlop={8}
+              >
+                <Text style={[styles.deleteText, { color: colors.subText }]}>신고</Text>
+              </Pressable>
+            )}
           </View>
 
           <Text style={[styles.title, { color: colors.text }]}>{post.title}</Text>
@@ -131,6 +194,15 @@ export default function PostDetailScreen() {
 
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <Text style={[styles.body, { color: colors.text }]}>{post.content}</Text>
+
+          {post.imageUrls.map((url) => (
+            <Image
+              key={url}
+              source={{ uri: imageFullUrl(url) }}
+              style={{ width: imgWidth, height: imgWidth, borderRadius: radius.md, marginTop: spacing.sm }}
+              resizeMode="cover"
+            />
+          ))}
 
           <View style={styles.likeRow}>
             <Pressable
@@ -163,6 +235,7 @@ export default function PostDetailScreen() {
                 colors={colors}
                 onReply={(cm) => setReplyTo({ id: cm.commentId, nickname: cm.authorNickname })}
                 onDelete={onDeleteComment}
+                onReport={(cm) => openModeration({ type: "COMMENT", id: cm.commentId, authorId: cm.authorId })}
               />
             ))
           )}
@@ -207,6 +280,14 @@ export default function PostDetailScreen() {
       </KeyboardAvoidingView>
 
       <AdBanner />
+
+      <ModerationSheet
+        visible={modTarget !== null}
+        targetLabel={modTarget?.type === "COMMENT" ? "댓글" : "게시글"}
+        onReport={onReport}
+        onBlock={onBlock}
+        onClose={() => setModTarget(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -216,10 +297,11 @@ interface ItemProps {
   colors: { text: string; subText: string; border: string; primary: string; card: string };
   onReply: (c: Comment) => void;
   onDelete: (commentId: number) => void;
+  onReport: (c: Comment) => void;
   isReply?: boolean;
 }
 
-function CommentItem({ comment, colors, onReply, onDelete, isReply }: ItemProps) {
+function CommentItem({ comment, colors, onReply, onDelete, onReport, isReply }: ItemProps) {
   return (
     <View style={[styles.comment, isReply && styles.replyIndent]}>
       <View style={styles.commentHead}>
@@ -244,7 +326,11 @@ function CommentItem({ comment, colors, onReply, onDelete, isReply }: ItemProps)
             <Pressable onPress={() => onDelete(comment.commentId)} hitSlop={6}>
               <Text style={[styles.commentAction, { color: colors.subText }]}>삭제</Text>
             </Pressable>
-          ) : null}
+          ) : (
+            <Pressable onPress={() => onReport(comment)} hitSlop={6}>
+              <Text style={[styles.commentAction, { color: colors.subText }]}>신고</Text>
+            </Pressable>
+          )}
         </View>
       ) : null}
 
@@ -255,6 +341,7 @@ function CommentItem({ comment, colors, onReply, onDelete, isReply }: ItemProps)
           colors={colors}
           onReply={onReply}
           onDelete={onDelete}
+          onReport={onReport}
           isReply
         />
       ))}

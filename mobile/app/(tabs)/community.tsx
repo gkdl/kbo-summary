@@ -22,9 +22,15 @@ export default function CommunityScreen() {
   const myTeam = useAppStore((s) => s.myTeam);
   // 기본 게시판: 마이팀 있으면 그 팀, 없으면 첫 구단
   const [team, setTeam] = useState<string>(myTeam ?? TEAMS[0].code);
+  const [sort, setSort] = useState<"latest" | "popular">("latest");
 
-  const query = usePosts({ team, sort: "latest" });
+  const query = usePosts({ team, sort });
   const posts: PostListItem[] = query.data?.pages.flatMap((p) => p?.items ?? []) ?? [];
+
+  const SORTS: { key: "popular" | "latest"; label: string }[] = [
+    { key: "popular", label: "인기글" },
+    { key: "latest", label: "최신글" },
+  ];
 
   const onWrite = () => {
     if (!isAuthed) {
@@ -64,6 +70,25 @@ export default function CommunityScreen() {
             );
           }}
         />
+      </View>
+
+      <View style={[styles.sortRow, { borderBottomColor: colors.border }]}>
+        {SORTS.map((s) => {
+          const active = sort === s.key;
+          return (
+            <Pressable key={s.key} onPress={() => setSort(s.key)} style={styles.sortTab}>
+              <Text
+                style={[
+                  styles.sortText,
+                  { color: active ? colors.primary : colors.subText, fontWeight: active ? "700" : "500" },
+                ]}
+              >
+                {s.label}
+              </Text>
+              {active ? <View style={[styles.sortUnderline, { backgroundColor: colors.primary }]} /> : null}
+            </Pressable>
+          );
+        })}
       </View>
 
       {query.isLoading ? (
@@ -111,6 +136,10 @@ const styles = StyleSheet.create({
   chipContent: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, borderWidth: border.card },
   chipText: { fontSize: 13, fontWeight: "600" },
+  sortRow: { flexDirection: "row", paddingHorizontal: spacing.md, borderBottomWidth: border.hairline },
+  sortTab: { paddingVertical: spacing.sm + 2, marginRight: spacing.lg, alignItems: "center" },
+  sortText: { fontSize: 14 },
+  sortUnderline: { position: "absolute", bottom: -border.hairline, left: 0, right: 0, height: 2 },
   listContent: { paddingHorizontal: spacing.md, paddingBottom: 90 },
   listWrap: { padding: spacing.md },
   fab: {
