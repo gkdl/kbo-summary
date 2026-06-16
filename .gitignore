@@ -61,3 +61,6 @@ npm-debug.*
 yarn-error.*
 *.tsbuildinfo
 .expo-shared/
+
+# 서버 로컬 이미지 업로드 디렉터리 (운영은 도커 볼륨)
+uploads/

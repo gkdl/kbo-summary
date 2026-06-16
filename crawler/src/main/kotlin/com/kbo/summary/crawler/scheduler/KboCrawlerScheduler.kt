@@ -65,17 +65,25 @@ class KboCrawlerScheduler(
             gameCrawlerService.crawlTodayGames()
                 .filter { it.status == GameStatus.FINISHED }
                 .forEach { game ->
-                    // 이미 저장된 경기는 skip
-                    if (gameBoxHitterRepository.findByGameId(game.gameId).isNotEmpty()) return@forEach
-                    // 최종 이닝 스코어 확정 — refreshTodayScores 활성시간(23시) 이후 끝난 경기 보완.
-                    // (읽기 경로에서 스코어를 더 이상 재크롤하지 않으므로 여기서 확정해 둔다)
-                    runCatching { gameCrawlerService.crawlGameScore(game.gameId) }
-                        .onFailure { log.warn("종료 경기 스코어 확정 실패 ({}): {}", game.gameId, it.message) }
-                    runCatching {
-                        gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
-                    }.onFailure { log.warn("박스스코어 저장 실패 ({}): {}", game.gameId, it.message) }
+                    val hasBox = gameBoxHitterRepository.findByGameId(game.gameId).isNotEmpty()
+                    val hasHighlight = gameHighlightRepository.findByGameId(game.gameId) != null
+                    // 박스스코어·하이라이트 둘 다 저장됐으면 skip
+                    if (hasBox && hasHighlight) return@forEach
 
-                    if (gameHighlightRepository.findByGameId(game.gameId) == null) {
+                    // 박스스코어가 아직 없을 때만 스코어 확정 + 박스스코어 저장.
+                    // (스코어 확정은 refreshTodayScores 활성시간(23시) 이후 끝난 경기 보완)
+                    if (!hasBox) {
+                        runCatching { gameCrawlerService.crawlGameScore(game.gameId) }
+                            .onFailure { log.warn("종료 경기 스코어 확정 실패 ({}): {}", game.gameId, it.message) }
+                        runCatching {
+                            gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode)
+                        }.onFailure { log.warn("박스스코어 저장 실패 ({}): {}", game.gameId, it.message) }
+                    }
+
+                    // 하이라이트는 박스스코어보다 늦게 publish 되므로, 박스가 이미 저장된 경기라도
+                    // 하이라이트가 없으면 매 사이클 계속 재시도해 저장한다.
+                    // (저장되면 읽기 경로에서 더 이상 크롤하지 않는다)
+                    if (!hasHighlight) {
                         runCatching {
                             gameCrawlerService.crawlAndSaveHighlight(game.gameId)
                         }.onFailure { log.warn("하이라이트 저장 실패 ({}): {}", game.gameId, it.message) }
