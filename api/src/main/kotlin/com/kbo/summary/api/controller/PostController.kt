@@ -27,7 +27,7 @@ class PostController(
         @RequestParam(defaultValue = "latest") sort: String,
         @RequestParam(defaultValue = "0") page: Int,
     ): ApiResponse<PostListDto> =
-        ApiResponse.ok(postService.list(team, sort, page))
+        ApiResponse.ok(postService.list(team, sort, page, CurrentMember.idOrNull()))
 
     @GetMapping("/{postId}")
     fun detail(@PathVariable postId: Long): ApiResponse<PostDetailDto> =

@@ -20,10 +20,15 @@ class CommentService(
     private val commentRepository: CommentRepository,
     private val postRepository: PostRepository,
     private val memberRepository: MemberRepository,
+    private val profanityFilter: ProfanityFilter,
+    private val blockService: BlockService,
 ) {
     @Transactional(readOnly = true)
     fun list(postId: Long, currentMemberId: Long?): List<CommentDto> {
+        // 내가 차단한 작성자의 댓글은 제외 (해당 댓글이 최상위면 그 답글도 함께 빠진다)
+        val blockedIds = currentMemberId?.let { blockService.blockedIds(it) } ?: emptySet()
         val all = commentRepository.findByPostIdOrderByCreatedAtAsc(postId)
+            .filter { it.memberId !in blockedIds }
         if (all.isEmpty()) return emptyList()
 
         val nicknames = memberRepository.findAllById(all.map { it.memberId })
@@ -64,6 +69,9 @@ class CommentService(
         val content = request.content.trim()
         if (content.isEmpty()) throw InvalidInputException("댓글 내용을 입력해주세요")
         if (content.length > 1000) throw InvalidInputException("댓글은 1000자 이내로 입력해주세요")
+        if (profanityFilter.containsProfanity(content)) {
+            throw InvalidInputException("부적절한 표현이 포함되어 있어 등록할 수 없습니다")
+        }
 
         val post = postRepository.findByIdOrNull(postId)?.takeIf { it.status == PostStatus.ACTIVE }
             ?: throw ResourceNotFoundException("게시글을 찾을 수 없습니다")

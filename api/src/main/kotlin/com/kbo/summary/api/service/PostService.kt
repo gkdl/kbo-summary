@@ -1,9 +1,11 @@
 package com.kbo.summary.api.service
 
 import com.kbo.summary.api.repository.MemberRepository
+import com.kbo.summary.api.repository.PostImageRepository
 import com.kbo.summary.api.repository.PostLikeRepository
 import com.kbo.summary.api.repository.PostRepository
 import com.kbo.summary.core.domain.Post
+import com.kbo.summary.core.domain.PostImage
 import com.kbo.summary.core.domain.PostLike
 import com.kbo.summary.core.domain.PostLikeId
 import com.kbo.summary.core.domain.PostStatus
@@ -27,9 +29,12 @@ class PostService(
     private val postRepository: PostRepository,
     private val memberRepository: MemberRepository,
     private val postLikeRepository: PostLikeRepository,
+    private val postImageRepository: PostImageRepository,
+    private val profanityFilter: ProfanityFilter,
+    private val blockService: BlockService,
 ) {
     @Transactional(readOnly = true)
-    fun list(teamCode: String?, sort: String, page: Int): PostListDto {
+    fun list(teamCode: String?, sort: String, page: Int, currentMemberId: Long?): PostListDto {
         val pageable = pageable(sort, page)
         val team = teamCode?.takeIf { it.isNotBlank() }
 
@@ -39,11 +44,21 @@ class PostService(
             postRepository.findByStatus(PostStatus.ACTIVE, pageable)
         }
 
+        // 내가 차단한 작성자의 글은 제외
+        val blockedIds = currentMemberId?.let { blockService.blockedIds(it) } ?: emptySet()
+        val visible = result.content.filter { it.memberId !in blockedIds }
+
         // 작성자 닉네임 일괄 조회 (N+1 방지)
-        val nicknames = memberRepository.findAllById(result.content.map { it.memberId })
+        val nicknames = memberRepository.findAllById(visible.map { it.memberId })
             .associate { it.memberId to it.nickname }
 
-        val items = result.content.map { post ->
+        // 썸네일(각 글 첫 이미지) 일괄 조회
+        val thumbByPost = postImageRepository
+            .findByPostIdInOrderBySortOrderAsc(visible.mapNotNull { it.postId })
+            .groupBy { it.postId }
+            .mapValues { (_, imgs) -> imgs.first().url }
+
+        val items = visible.map { post ->
             PostListItemDto(
                 postId = post.postId!!,
                 teamCode = post.teamCode,
@@ -53,6 +68,7 @@ class PostService(
                 likeCount = post.likeCount,
                 commentCount = post.commentCount,
                 createdAt = post.createdAt,
+                thumbnailUrl = thumbByPost[post.postId],
             )
         }
         return PostListDto(items = items, page = page, hasNext = result.hasNext())
@@ -77,6 +93,7 @@ class PostService(
             mine = currentMemberId != null && currentMemberId == post.memberId,
             liked = currentMemberId != null &&
                 postLikeRepository.existsById_PostIdAndId_MemberId(post.postId!!, currentMemberId),
+            imageUrls = postImageRepository.findByPostIdOrderBySortOrderAsc(post.postId!!).map { it.url },
         )
     }
 
@@ -106,10 +123,18 @@ class PostService(
         if (title.isEmpty()) throw InvalidInputException("제목을 입력해주세요")
         if (content.isEmpty()) throw InvalidInputException("내용을 입력해주세요")
         if (title.length > 100) throw InvalidInputException("제목은 100자 이내로 입력해주세요")
+        if (profanityFilter.containsProfanity(title, content)) {
+            throw InvalidInputException("부적절한 표현이 포함되어 있어 등록할 수 없습니다")
+        }
+        // 업로드 경로(/uploads/)만 허용하고 최대 4장으로 제한
+        val images = request.imageUrls.filter { it.startsWith("/uploads/") }.take(MAX_IMAGES)
 
         val post = postRepository.save(
             Post(memberId = memberId, teamCode = team, title = title, content = content),
         )
+        images.forEachIndexed { index, url ->
+            postImageRepository.save(PostImage(postId = post.postId!!, url = url, sortOrder = index))
+        }
         return post.postId!!
     }
 
@@ -141,5 +166,6 @@ class PostService(
 
     private companion object {
         const val PAGE_SIZE = 20
+        const val MAX_IMAGES = 4
     }
 }

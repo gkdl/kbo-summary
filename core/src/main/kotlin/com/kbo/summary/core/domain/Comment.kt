@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 enum class CommentStatus {
     ACTIVE,
     DELETED,
+    HIDDEN,   // 누적 신고로 자동 숨김
 }
 
 @Entity

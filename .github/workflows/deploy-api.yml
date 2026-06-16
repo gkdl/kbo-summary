@@ -61,6 +61,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 lim@104.198.2.246 "
             cd /home/lim/kbo-summary
+            mkdir -p /home/lim/kbo-summary/uploads
             docker build -t kbo-api .
             docker stop kbo-api 2>/dev/null || true
             docker rm kbo-api 2>/dev/null || true
@@ -68,6 +69,8 @@ jobs:
               --name kbo-api \
               --env-file .env \
               -e JAVA_TOOL_OPTIONS='-Xmx500m -XX:MaxRAMPercentage=50' \
+              -e UPLOAD_DIR=/app/uploads \
+              -v /home/lim/kbo-summary/uploads:/app/uploads \
               -p 8080:8080 \
               --restart unless-stopped \
               --memory=700m \

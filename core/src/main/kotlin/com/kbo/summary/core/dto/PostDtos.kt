@@ -6,6 +6,7 @@ data class CreatePostRequest(
     val teamCode: String,
     val title: String,
     val content: String,
+    val imageUrls: List<String> = emptyList(),
 )
 
 data class PostListItemDto(
@@ -17,6 +18,8 @@ data class PostListItemDto(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: LocalDateTime,
+    // 목록 썸네일 (첫 번째 이미지). 없으면 null
+    val thumbnailUrl: String?,
 )
 
 data class PostListDto(
@@ -40,4 +43,5 @@ data class PostDetailDto(
     val mine: Boolean,
     // 현재 사용자가 좋아요를 눌렀는지
     val liked: Boolean,
+    val imageUrls: List<String> = emptyList(),
 )

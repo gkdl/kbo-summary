@@ -38,6 +38,11 @@ class SecurityConfig(
                 authorize(HttpMethod.POST, "/api/posts/*/like", authenticated)
                 authorize(HttpMethod.POST, "/api/posts/*/comments", authenticated)
                 authorize(HttpMethod.DELETE, "/api/comments/*", authenticated)
+                // 신고·차단·이미지 업로드는 로그인 필요 (업로드된 이미지 GET 은 공개)
+                authorize(HttpMethod.POST, "/api/reports", authenticated)
+                authorize(HttpMethod.POST, "/api/blocks", authenticated)
+                authorize(HttpMethod.DELETE, "/api/blocks/*", authenticated)
+                authorize(HttpMethod.POST, "/api/images", authenticated)
                 // 그 외(로그인·조회 API·actuator·swagger 등)는 공개
                 authorize(anyRequest, permitAll)
             }
