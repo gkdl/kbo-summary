@@ -49,10 +49,13 @@ export default function GameDetailScreen() {
 
   const awayTeam = getTeam(detail.game.awayTeamCode);
   const homeTeam = getTeam(detail.game.homeTeamCode);
-  const isFinished = detail.game.status === "FINISHED";
-  // KBO API 가 진행 중/예정 경기에 대해선 이닝별 점수·박스스코어 데이터를 주지 않아
-  // 빈 표 대신 안내 카드를 표시한다.
-  const showLiveDetails = isFinished;
+  const status = detail.game.status;
+  const isFinished = status === "FINISHED";
+  const isScheduled = status === "SCHEDULED";
+  // 진행 중 경기도 이닝별 점수·박스스코어를 라이브로 표시한다(백엔드가 IN_PROGRESS 조회 시 갱신).
+  // AI 요약·하이라이트는 경기 종료 후에만 제공. 시작 전(예정) 경기만 안내 카드를 띄운다.
+  const showScoreDetails = !isScheduled;
+  const hasBox = (detail.awayHitters?.length ?? 0) + (detail.homeHitters?.length ?? 0) > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -84,7 +87,7 @@ export default function GameDetailScreen() {
         </Pressable>
       </View>
 
-      {showLiveDetails ? (
+      {showScoreDetails ? (
         <>
           <InningTable
             awayTeamCode={detail.game.awayTeamCode}
@@ -94,28 +97,36 @@ export default function GameDetailScreen() {
             homeLine={detail.homeLine}
           />
 
-          {/* AI 요약은 이닝 결과 바로 아래 — 흐름을 한눈에 본 직후 요약을 읽을 수 있게 */}
-          <AISummaryCard summary={summaryQuery.data ?? null} loading={summaryQuery.isLoading} />
+          {/* AI 요약은 종료 경기만 — 이닝 결과 바로 아래 배치. 진행 중엔 안내만 표시. */}
+          {isFinished ? (
+            <AISummaryCard summary={summaryQuery.data ?? null} loading={summaryQuery.isLoading} />
+          ) : (
+            <View style={[styles.liveHint, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.liveHintText, { color: colors.subText }]}>
+                🤖 AI 요약은 경기 종료 후 제공돼요
+              </Text>
+            </View>
+          )}
 
           {detail.highlight ? <HighlightCard highlight={detail.highlight} /> : null}
 
-          <BoxScoreTable
-            awayTeamCode={detail.game.awayTeamCode}
-            homeTeamCode={detail.game.homeTeamCode}
-            awayHitters={detail.awayHitters ?? []}
-            homeHitters={detail.homeHitters ?? []}
-            awayPitchers={detail.awayPitchers ?? []}
-            homePitchers={detail.homePitchers ?? []}
-          />
+          {hasBox ? (
+            <BoxScoreTable
+              awayTeamCode={detail.game.awayTeamCode}
+              homeTeamCode={detail.game.homeTeamCode}
+              awayHitters={detail.awayHitters ?? []}
+              homeHitters={detail.homeHitters ?? []}
+              awayPitchers={detail.awayPitchers ?? []}
+              homePitchers={detail.homePitchers ?? []}
+            />
+          ) : null}
         </>
       ) : (
         <View style={[styles.notice, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.noticeIcon, { color: colors.primary }]}>ⓘ</Text>
-          <Text style={[styles.noticeTitle, { color: colors.text }]}>
-            {detail.game.status === "IN_PROGRESS" ? "경기 진행 중" : "경기 예정"}
-          </Text>
+          <Text style={[styles.noticeTitle, { color: colors.text }]}>경기 예정</Text>
           <Text style={[styles.noticeBody, { color: colors.subText }]}>
-            이닝별 점수와 박스스코어, AI 요약은 경기 종료 후 표시됩니다.
+            이닝별 점수와 박스스코어는 경기가 시작되면, AI 요약은 경기 종료 후 표시됩니다.
           </Text>
         </View>
       )}
@@ -154,4 +165,11 @@ const styles = StyleSheet.create({
   noticeIcon: { fontSize: 28, fontWeight: "700" },
   noticeTitle: { fontSize: 15, fontWeight: "700" },
   noticeBody: { fontSize: 13, textAlign: "center", lineHeight: 20 },
+  liveHint: {
+    padding: spacing.md,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  liveHintText: { fontSize: 13 },
 });
