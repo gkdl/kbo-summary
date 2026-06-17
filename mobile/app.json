@@ -17,7 +17,8 @@
     "android": {
       "package": "com.kbo.summary",
       "blockedPermissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
