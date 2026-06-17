@@ -22,8 +22,9 @@ enum class MemberStatus {
 @Entity
 @Table(name = "TB_MEMBER")
 class Member(
+    // 탈퇴 시 복구 불가능한 토큰으로 덮어써 카카오 계정 연결을 끊으므로 var.
     @Column(name = "KAKAO_ID", length = 50, nullable = false, unique = true)
-    val kakaoId: String,
+    var kakaoId: String,
 
     @Column(name = "NICKNAME", length = 30, nullable = false)
     var nickname: String,

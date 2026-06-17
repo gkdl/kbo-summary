@@ -89,9 +89,14 @@ class GameService(
         val game = gameRepository.findByGameId(gameId)
             ?: throw GameNotFoundException(gameId)
         var scores = gameScoreRepository.findByGameId(gameId)
-        // 시작 전 경기는 GameScore 자체가 없음. 종료/진행 경기의 라이브 갱신은 스케줄러가 담당하므로
-        // 읽기 경로는 DB 가 비어 있을 때만(스케줄러가 아직 못 채운 경기) throttle 걸어 1회 보충한다.
-        if (game.status != GameStatus.SCHEDULED && scores.isEmpty() &&
+        // 시작 전 경기는 GameScore 자체가 없음.
+        // 진행 중(IN_PROGRESS) 경기는 이닝 점수가 계속 바뀌므로 조회할 때마다 갱신한다.
+        //   - 스케줄러(14~23시)가 못 도는 시간대·서버 재시작·로컬 개발 환경에서도 라이브 점수가 최신이 되고,
+        //   - 한 번 저장된 빈/부분 이닝 행이 영영 고정되는 문제(scores.isEmpty()=false 라 재크롤 안 되던 버그)를 해소한다.
+        // 종료(FINISHED) 경기는 값이 안 바뀌므로 DB 가 비어 있을 때만 1회 보충한다.
+        // throttle(60s)로 같은 경기 연타 크롤을 막아 KBO 과다호출은 방지한다.
+        val refreshScore = game.status == GameStatus.IN_PROGRESS || scores.isEmpty()
+        if (game.status != GameStatus.SCHEDULED && refreshScore &&
             gameCrawlThrottle.tryAcquire("score:$gameId")) {
             crawlSafely { gameCrawlerService.crawlGameScore(gameId) }
             scores = gameScoreRepository.findByGameId(gameId)
@@ -104,22 +109,30 @@ class GameService(
     }
 
     private fun fetchBoxScore(game: Game): BoxScoreDto? {
-        val dbHitters = gameBoxHitterRepository.findByGameId(game.gameId)
-        val dbPitchers = gameBoxPitcherRepository.findByGameId(game.gameId)
-        if (dbHitters.isNotEmpty()) {
-            return BoxScoreDto(
-                gameId = game.gameId,
-                awayHitters = dbHitters.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
-                homeHitters = dbHitters.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
-                awayPitchers = dbPitchers.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
-                homePitchers = dbPitchers.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
-            )
+        val cached = boxScoreFromDb(game)
+        // 진행 중(IN_PROGRESS) 경기는 박스스코어도 매 이닝 바뀌므로 조회 때마다 갱신한다.
+        // 그 외엔 DB 가 있으면 그대로 쓰고, 없을 때만 보충 크롤. throttle(60s)로 연타 크롤을 막는다.
+        val needsRefresh = game.status == GameStatus.IN_PROGRESS || cached == null
+        if (needsRefresh && gameCrawlThrottle.tryAcquire("box:${game.gameId}")) {
+            runCatching {
+                runBlocking { gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode) }
+            }.getOrNull()?.let { return it }
         }
-        // DB 에 없으면(스케줄러가 아직 저장 전) throttle 걸어 1회만 보충 크롤
-        if (!gameCrawlThrottle.tryAcquire("box:${game.gameId}")) return null
-        return runCatching {
-            runBlocking { gameCrawlerService.crawlAndSaveBoxScore(game.gameId, game.awayTeamCode, game.homeTeamCode) }
-        }.getOrNull()
+        // 크롤을 건너뛰었거나(throttle) 실패하면 DB 캐시로 폴백한다.
+        return cached
+    }
+
+    private fun boxScoreFromDb(game: Game): BoxScoreDto? {
+        val dbHitters = gameBoxHitterRepository.findByGameId(game.gameId)
+        if (dbHitters.isEmpty()) return null
+        val dbPitchers = gameBoxPitcherRepository.findByGameId(game.gameId)
+        return BoxScoreDto(
+            gameId = game.gameId,
+            awayHitters = dbHitters.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
+            homeHitters = dbHitters.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
+            awayPitchers = dbPitchers.filter { it.teamCode == game.awayTeamCode }.map { it.toRecordDto() },
+            homePitchers = dbPitchers.filter { it.teamCode == game.homeTeamCode }.map { it.toRecordDto() },
+        )
     }
 
     private fun fetchHighlight(gameId: String): CrawlerHighlightDto? {

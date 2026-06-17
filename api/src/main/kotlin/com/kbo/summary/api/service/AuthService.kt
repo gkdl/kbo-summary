@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class AuthService(
@@ -27,12 +28,12 @@ class AuthService(
     fun kakaoLogin(kakaoAccessToken: String): TokenResponse {
         val profile = kakaoClient.fetchProfile(kakaoAccessToken)
 
+        // 탈퇴 회원은 kakaoId 를 파기하므로 findByKakaoId 로 잡히지 않는다 →
+        // 같은 카카오로 재로그인하면 항상 '새 회원'으로 시작한다(탈퇴는 영구).
         val member = memberRepository.findByKakaoId(profile.kakaoId)?.also { existing ->
             if (existing.status == MemberStatus.BANNED) {
                 throw UnauthorizedException("이용이 제한된 계정입니다")
             }
-            // 탈퇴 후 재로그인 시 계정 재활성화
-            if (existing.status == MemberStatus.WITHDRAWN) existing.status = MemberStatus.ACTIVE
             existing.nickname = profile.nickname
         } ?: memberRepository.save(
             Member(kakaoId = profile.kakaoId, nickname = profile.nickname),
@@ -63,14 +64,22 @@ class AuthService(
         (memberRepository.findByIdOrNull(memberId)
             ?: throw UnauthorizedException("존재하지 않는 회원입니다")).toDto()
 
-    /** 회원 탈퇴 — 상태만 WITHDRAWN 으로 (작성 글 보존). 카카오 닉네임은 익명화. */
+    /**
+     * 회원 탈퇴 — 카카오 연결 식별자(kakaoId)를 복구 불가능한 토큰으로 파기한다.
+     * - kakaoId 를 덮어써 카카오 계정과의 연결을 끊는다(원본 식별자 복구 불가).
+     * - 작성한 글·댓글은 '탈퇴한 회원'으로 익명 보존(FK 무결성 위해 회원 행 자체는 유지).
+     * - 같은 카카오로 다시 로그인하면 새 회원으로 시작(탈퇴는 영구).
+     * 앱 쪽에서는 탈퇴 시 카카오 unlink 까지 호출해 양쪽 연결을 모두 해제한다.
+     */
     @Transactional
     fun withdraw(memberId: Long) {
         val member = memberRepository.findByIdOrNull(memberId)
             ?: throw UnauthorizedException("존재하지 않는 회원입니다")
+        member.kakaoId = "withdrawn:${UUID.randomUUID()}"
         member.status = MemberStatus.WITHDRAWN
         member.nickname = "탈퇴한 회원"
-        log.info("회원 탈퇴: memberId={}", memberId)
+        member.teamCode = null
+        log.info("회원 탈퇴(식별자 파기): memberId={}", memberId)
     }
 
     private fun issueFor(member: Member): TokenResponse {
