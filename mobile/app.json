@@ -16,6 +16,9 @@
     },
     "android": {
       "package": "com.kbo.summary",
+      "blockedPermissions": [
+        "android.permission.CAMERA"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1A1748"
