@@ -1,4 +1,4 @@
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -39,9 +39,19 @@ export default function LoginScreen() {
         <Pressable
           onPress={onKakao}
           disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="카카오로 로그인"
           style={({ pressed }) => [styles.kakaoButton, { opacity: pressed || loading ? 0.7 : 1 }]}
         >
-          <Text style={styles.kakaoText}>{loading ? "로그인 중..." : "카카오로 시작하기"}</Text>
+          {loading ? (
+            <ActivityIndicator color="#3C1E1E" />
+          ) : (
+            <Image
+              source={require("../assets/kakao-login.png")}
+              style={styles.kakaoImage}
+              resizeMode="contain"
+            />
+          )}
         </Pressable>
 
         <Pressable onPress={() => router.back()} style={styles.skip}>
@@ -70,14 +80,14 @@ const styles = StyleSheet.create({
   logoText: { fontSize: 38 },
   title: { fontSize: 22, fontWeight: "700", marginBottom: spacing.sm },
   subtitle: { fontSize: 14, textAlign: "center", lineHeight: 22, marginBottom: spacing.xl + 12 },
+  // 카카오 공식 버튼 이미지 사용 — 비율 유지(183:45)로 왜곡 없이 표시
   kakaoButton: {
-    width: "100%",
-    backgroundColor: "#FEE500",
-    borderRadius: radius.md,
-    paddingVertical: 14,
+    alignSelf: "stretch",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
   },
-  kakaoText: { fontSize: 15, fontWeight: "700", color: "#3C1E1E" },
+  kakaoImage: { width: 240, height: 240 * (45 / 183) },
   skip: { marginTop: spacing.lg },
   skipText: { fontSize: 14 },
   terms: {

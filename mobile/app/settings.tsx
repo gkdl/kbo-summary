@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -26,10 +26,14 @@ export default function SettingsScreen() {
     ]);
 
   const onWithdraw = () =>
-    Alert.alert("회원 탈퇴", "탈퇴하면 작성한 글은 '탈퇴한 회원'으로 표시됩니다. 계속할까요?", [
-      { text: "취소", style: "cancel" },
-      { text: "탈퇴", style: "destructive", onPress: () => void withdraw() },
-    ]);
+    Alert.alert(
+      "회원 탈퇴",
+      "탈퇴하면 카카오 연결이 영구 해제되고 계정 정보가 파기됩니다. 되돌릴 수 없으며, 작성한 글은 '탈퇴한 회원'으로 표시됩니다. 계속할까요?",
+      [
+        { text: "취소", style: "cancel" },
+        { text: "탈퇴", style: "destructive", onPress: () => void withdraw() },
+      ],
+    );
 
   const apply = async (teamCode: string | null) => {
     await userPrefs.setMyTeam(teamCode);
@@ -84,9 +88,15 @@ export default function SettingsScreen() {
         ) : (
           <Pressable
             onPress={() => router.push("/login")}
+            accessibilityRole="button"
+            accessibilityLabel="카카오로 로그인"
             style={({ pressed }) => [styles.kakaoBtn, { opacity: pressed ? opacity.pressed : 1 }]}
           >
-            <Text style={styles.kakaoLabel}>카카오로 로그인</Text>
+            <Image
+              source={require("../assets/kakao-login.png")}
+              style={styles.kakaoImage}
+              resizeMode="contain"
+            />
           </Pressable>
         )}
 
@@ -160,14 +170,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   outlineLabel: { fontSize: 14, fontWeight: "600" },
+  // 카카오 공식 버튼 이미지 사용 (로그인 화면과 통일, 비율 183:45 유지)
   kakaoBtn: {
     marginTop: spacing.sm,
-    backgroundColor: "#FEE500",
-    borderRadius: radius.md,
-    paddingVertical: 13,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
   },
-  kakaoLabel: { fontSize: 15, fontWeight: "700", color: "#3C1E1E" },
+  kakaoImage: { width: 240, height: 240 * (45 / 183) },
   clearButton: {
     marginTop: spacing.lg,
     paddingVertical: 12,
