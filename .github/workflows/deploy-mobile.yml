@@ -1,11 +1,9 @@
 name: Deploy Mobile (EAS Build)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'mobile/**'
-
+  # 자동 클라우드 빌드 비활성화: 현재 모바일은 로컬(eas build --local)로 빌드/업로드한다.
+  # (EAS 무료 빌드 한도 절약 + 로컬 빌드 산출물과의 충돌 방지)
+  # 클라우드 빌드/자동 제출이 필요하면 GitHub Actions 탭에서 수동 실행(Run workflow).
   workflow_dispatch:
 
 jobs:
